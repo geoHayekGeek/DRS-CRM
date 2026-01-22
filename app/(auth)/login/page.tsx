@@ -71,7 +71,7 @@ export default function LoginPage() {
             </div>
             <div>
               <h1 
-                className="text-3xl font-bold tracking-tight"
+                className="text-3xl font-heading font-semibold tracking-tight"
                 style={{ color: theme.colors.primary.dark }}
               >
                 DRS Cup 2026
@@ -88,7 +88,7 @@ export default function LoginPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
                 </label>
                 <input
@@ -111,7 +111,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password
                 </label>
                 <input

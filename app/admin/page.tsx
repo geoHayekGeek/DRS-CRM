@@ -8,7 +8,7 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1
-            className="text-3xl font-bold mb-2"
+            className="text-3xl font-heading font-semibold mb-2"
             style={{ color: theme.colors.primary.red }}
           >
             Admin Dashboard

@@ -71,13 +71,13 @@ export default function DriversPage() {
                   setDeletingId(null);
                 }
               }}
-              className="px-3 py-1 text-xs font-medium rounded bg-red-600 hover:bg-red-700 text-white transition-colors"
+              className="px-3 py-1 text-xs font-semibold rounded bg-red-600 hover:bg-red-700 text-white transition-colors"
             >
               Confirm
             </button>
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="px-3 py-1 text-xs font-medium rounded bg-gray-600 hover:bg-gray-700 text-white transition-colors"
+              className="px-3 py-1 text-xs font-semibold rounded bg-gray-600 hover:bg-gray-700 text-white transition-colors"
             >
               Cancel
             </button>
@@ -104,14 +104,14 @@ export default function DriversPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1
-            className="text-3xl font-bold"
+            className="text-3xl font-heading font-semibold"
             style={{ color: theme.colors.primary.red }}
           >
             Drivers
           </h1>
           <button
             onClick={() => router.push("/admin/drivers/new")}
-            className="px-4 py-2 text-white font-medium rounded-lg transition-all duration-200"
+            className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200"
             style={{ backgroundColor: theme.colors.primary.red }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}

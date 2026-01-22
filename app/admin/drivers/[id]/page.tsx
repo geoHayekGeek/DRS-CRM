@@ -75,7 +75,7 @@ export default function DriverDetailPage() {
           </div>
           <button
             onClick={() => router.push("/admin/drivers")}
-            className="px-4 py-2 border border-gray-400 text-gray-200 font-medium rounded-lg transition-all duration-200 hover:bg-white hover:text-gray-900"
+            className="px-4 py-2 border border-gray-400 text-gray-200 font-semibold rounded-lg transition-all duration-200 hover:bg-white hover:text-gray-900"
           >
             Back to Drivers
           </button>
@@ -89,14 +89,14 @@ export default function DriverDetailPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <h1
-            className="text-3xl font-bold"
+            className="text-3xl font-heading font-semibold"
             style={{ color: theme.colors.primary.red }}
           >
             {driver.fullName}
           </h1>
           <button
             onClick={() => router.push(`/admin/drivers/${id}/edit`)}
-            className="px-4 py-2 text-white font-medium rounded-lg transition-all duration-200"
+            className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200"
             style={{ backgroundColor: theme.colors.primary.red }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
@@ -107,7 +107,7 @@ export default function DriverDetailPage() {
 
         <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Driver Information</h2>
+            <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Driver Information</h2>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <dt className="text-sm font-medium text-gray-500">Full Name</dt>
@@ -138,13 +138,13 @@ export default function DriverDetailPage() {
 
           {driver.notes && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Notes</h2>
+              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-2">Notes</h2>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{driver.notes}</p>
             </div>
           )}
 
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Race History</h2>
+            <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Race History</h2>
             <p className="text-sm text-gray-500">Race history will be displayed here in the future.</p>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function DriverDetailPage() {
         <div className="mt-6">
           <button
             onClick={() => router.push("/admin/drivers")}
-            className="px-4 py-2 border border-gray-400 text-gray-200 font-medium rounded-lg transition-all duration-200 hover:bg-white hover:text-gray-900"
+            className="px-4 py-2 border border-gray-400 text-gray-200 font-semibold rounded-lg transition-all duration-200 hover:bg-white hover:text-gray-900"
           >
             Back to Drivers
           </button>

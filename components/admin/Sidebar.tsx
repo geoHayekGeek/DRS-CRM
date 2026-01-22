@@ -106,7 +106,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           onClick={handleLogout}
           disabled={logoutLoading}
           className={`
-            w-full px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+            w-full px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
             ${collapsed ? "opacity-0 pointer-events-none" : "opacity-100"}
           `}
