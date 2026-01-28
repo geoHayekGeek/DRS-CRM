@@ -93,6 +93,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <SidebarLink href="/admin/tracks" collapsed={collapsed}>
           Tracks
         </SidebarLink>
+        <SidebarLink href="/admin/championships" collapsed={collapsed}>
+          Championships
+        </SidebarLink>
         <SidebarLink href="/admin/rounds" collapsed={collapsed}>
           Rounds
         </SidebarLink>

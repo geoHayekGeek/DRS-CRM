@@ -18,14 +18,114 @@ model AdminUser {
 }
 
 model Driver {
-  id             String   @id @default(uuid())
-  fullName       String   @map("full_name")
-  profileImageUrl String? @map("profile_image_url")
+  id             String             @id @default(uuid())
+  fullName       String             @map("full_name")
+  profileImageUrl String?            @map("profile_image_url")
   weight         Float?
   height         Float?
   notes          String?
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  groupAssignments GroupAssignment[]
+  sessionResults SessionResult[]
 
   @@map("drivers")
+}
+
+model Track {
+  id           String   @id @default(uuid())
+  name         String
+  lengthMeters Float    @map("length_meters")
+  location     String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  rounds       Round[]
+
+  @@map("tracks")
+}
+
+model Championship {
+  id        String   @id @default(uuid())
+  name      String
+  isCurrent Boolean  @default(false) @map("is_current")
+  startDate DateTime @map("start_date")
+  endDate   DateTime? @map("end_date")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  rounds    Round[]
+
+  @@map("championships")
+}
+
+model Round {
+  id             String            @id @default(uuid())
+  name           String
+  date           DateTime
+  trackId        String            @map("track_id")
+  track          Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  championshipId String?           @map("championship_id")
+  championship   Championship?     @relation(fields: [championshipId], references: [id], onDelete: Cascade)
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  sessions       Session[]
+  groupAssignments GroupAssignment[]
+
+  @@map("rounds")
+}
+
+enum SessionType {
+  QUALIFYING
+  RACE
+  FINAL_QUALIFYING
+  FINAL_RACE
+}
+
+enum PointsMultiplier {
+  NORMAL
+  HALF
+  DOUBLE
+}
+
+model Session {
+  id              String            @id @default(uuid())
+  roundId         String            @map("round_id")
+  round           Round             @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  type            SessionType
+  group           String?
+  order           Int
+  pointsMultiplier PointsMultiplier? @map("points_multiplier")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  results         SessionResult[]
+
+  @@map("sessions")
+}
+
+model SessionResult {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  driverId  String   @map("driver_id")
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  position  Int
+  points    Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([sessionId, driverId])
+  @@map("session_results")
+}
+
+model GroupAssignment {
+  id         String   @id @default(uuid())
+  roundId    String   @map("round_id")
+  round      Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  driverId   String   @map("driver_id")
+  driver     Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  group      String
+  kartNumber Int      @map("kart_number")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([roundId, driverId])
+  @@map("group_assignments")
 }
