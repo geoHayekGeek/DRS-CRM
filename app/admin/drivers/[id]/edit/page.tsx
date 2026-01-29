@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
 
+const ALLOWED_TYPES = "image/jpeg,image/png,image/webp";
+const MAX_SIZE_MB = 5;
+
 interface Driver {
   id: string;
   fullName: string;
+  profileImageUrl: string | null;
   weight: number | null;
   height: number | null;
   notes: string | null;
@@ -17,10 +21,15 @@ export default function EditDriverPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     weight: "",
@@ -46,6 +55,7 @@ export default function EditDriverPage() {
         height: driver.height?.toString() || "",
         notes: driver.notes || "",
       });
+      setCurrentImageUrl(driver.profileImageUrl || null);
     } catch (err) {
       const errorMessage = "Failed to load driver";
       setError(errorMessage);
@@ -55,14 +65,60 @@ export default function EditDriverPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setProfileFile(null);
+      if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+      setProfilePreviewUrl(null);
+      setRemoveImage(false);
+      return;
+    }
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast.error("Use JPG, PNG, or WebP only.");
+      return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File must be under ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+    setProfileFile(file);
+    setProfilePreviewUrl(URL.createObjectURL(file));
+    setRemoveImage(false);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSaving(true);
 
     try {
-      const payload: any = {
+      let profileImageUrl: string | null = currentImageUrl;
+
+      if (removeImage) {
+        profileImageUrl = null;
+      } else if (profileFile) {
+        const form = new FormData();
+        form.append("file", profileFile);
+        const uploadRes = await fetch("/api/admin/drivers/upload", {
+          method: "POST",
+          body: form,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          const msg = uploadData.error || "Upload failed";
+          setError(msg);
+          toast.error(msg);
+          setSaving(false);
+          return;
+        }
+        profileImageUrl = uploadData.url ?? null;
+      }
+
+      const payload: Record<string, unknown> = {
         fullName: formData.fullName.trim(),
+        profileImageUrl,
       };
 
       if (formData.weight.trim()) {
@@ -145,6 +201,71 @@ export default function EditDriverPage() {
 
         <div className="bg-white rounded-lg shadow-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profile image (optional)
+              </label>
+              {(currentImageUrl || profilePreviewUrl) && !removeImage ? (
+                <div className="flex items-center gap-4">
+                  <img
+                    src={profilePreviewUrl || currentImageUrl || ""}
+                    alt="Profile"
+                    className="h-24 w-24 rounded-full object-cover border border-gray-200"
+                  />
+                  <div className="space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={ALLOWED_TYPES}
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer"
+                      style={{
+                        // @ts-expect-error CSS custom property
+                        "--tw-file-color": theme.colors.primary.red,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRemoveImage(true);
+                        setProfileFile(null);
+                        if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+                        setProfilePreviewUrl(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="text-sm text-gray-600 hover:text-gray-900 underline"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ALLOWED_TYPES}
+                    onChange={handleFileChange}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer"
+                    style={{
+                      // @ts-expect-error CSS custom property
+                      "--tw-file-color": theme.colors.primary.red,
+                    }}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">JPG, PNG or WebP, max {MAX_SIZE_MB}MB</p>
+                  {removeImage && (
+                    <button
+                      type="button"
+                      onClick={() => setRemoveImage(false)}
+                      className="mt-2 text-sm text-gray-600 hover:text-gray-900 underline"
+                    >
+                      Keep current image
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name *

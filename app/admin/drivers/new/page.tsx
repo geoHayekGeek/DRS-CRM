@@ -1,14 +1,20 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
 
+const ALLOWED_TYPES = "image/jpeg,image/png,image/webp";
+const MAX_SIZE_MB = 5;
+
 export default function NewDriverPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     weight: "",
@@ -16,14 +22,55 @@ export default function NewDriverPage() {
     notes: "",
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setProfileFile(null);
+      if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+      setProfilePreviewUrl(null);
+      return;
+    }
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast.error("Use JPG, PNG, or WebP only.");
+      return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File must be under ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+    setProfileFile(file);
+    setProfilePreviewUrl(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const payload: any = {
+      let profileImageUrl: string | null = null;
+      if (profileFile) {
+        const form = new FormData();
+        form.append("file", profileFile);
+        const uploadRes = await fetch("/api/admin/drivers/upload", {
+          method: "POST",
+          body: form,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          const msg = uploadData.error || "Upload failed";
+          setError(msg);
+          toast.error(msg);
+          setLoading(false);
+          return;
+        }
+        profileImageUrl = uploadData.url ?? null;
+      }
+
+      const payload: Record<string, unknown> = {
         fullName: formData.fullName.trim(),
+        profileImageUrl,
       };
 
       if (formData.weight.trim()) {
@@ -90,6 +137,33 @@ export default function NewDriverPage() {
 
         <div className="bg-white rounded-lg shadow-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profile image (optional)
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ALLOWED_TYPES}
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer"
+                style={{
+                  // @ts-expect-error CSS custom property
+                  "--tw-file-color": theme.colors.primary.red,
+                }}
+              />
+              <p className="mt-1 text-xs text-gray-500">JPG, PNG or WebP, max {MAX_SIZE_MB}MB</p>
+              {profilePreviewUrl && (
+                <div className="mt-3">
+                  <img
+                    src={profilePreviewUrl}
+                    alt="Preview"
+                    className="h-24 w-24 rounded-full object-cover border border-gray-200"
+                  />
+                </div>
+              )}
+            </div>
+
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name *

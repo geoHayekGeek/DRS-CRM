@@ -8,6 +8,22 @@ export async function GET(
   try {
     const driver = await db.driver.findUnique({
       where: { id: params.id },
+      include: {
+        sessionResults: {
+          include: {
+            session: {
+              include: {
+                round: {
+                  include: {
+                    championship: true,
+                    track: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!driver) {
@@ -17,7 +33,17 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(driver);
+    const sessionResults = [...driver.sessionResults].sort((a, b) => {
+      const dateA = a.session.round.date.getTime();
+      const dateB = b.session.round.date.getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return a.session.order - b.session.order;
+    });
+
+    return NextResponse.json({
+      ...driver,
+      sessionResults,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch driver" },
