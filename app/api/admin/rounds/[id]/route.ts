@@ -37,13 +37,33 @@ export async function GET(
   }
 }
 
+function parseAvailableKartsPut(value: unknown): number[] | null {
+  if (Array.isArray(value)) {
+    const nums = value.filter((x) => typeof x === "number" && Number.isInteger(x));
+    const unique = [...new Set(nums)];
+    return unique.length === nums.length ? unique : null;
+  }
+  if (typeof value === "string") {
+    const parts = value.split(",").map((s) => s.trim()).filter(Boolean);
+    const nums: number[] = [];
+    for (const p of parts) {
+      const n = parseInt(p, 10);
+      if (isNaN(n) || !Number.isInteger(n)) return null;
+      nums.push(n);
+    }
+    const unique = [...new Set(nums)];
+    return unique.length === nums.length ? unique : null;
+  }
+  return null;
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const body = await request.json();
-    const { name, date, trackId, championshipId } = body;
+    const { name, date, trackId, championshipId, numberOfGroups, availableKarts } = body;
 
     const existingRound = await db.round.findUnique({
       where: { id: params.id },
@@ -114,14 +134,46 @@ export async function PUT(
       );
     }
 
+    const data: {
+      name: string;
+      date: Date;
+      trackId: string;
+      championshipId: string;
+      numberOfGroups?: number;
+      availableKarts?: number[];
+    } = {
+      name: name.trim(),
+      date: roundDate,
+      trackId,
+      championshipId,
+    };
+
+    if (!existingRound.setupCompleted) {
+      if (numberOfGroups !== undefined && numberOfGroups !== null) {
+        const numGroups = Number(numberOfGroups);
+        if (!Number.isInteger(numGroups) || numGroups < 1) {
+          return NextResponse.json(
+            { error: "Number of groups must be at least 1" },
+            { status: 400 }
+          );
+        }
+        data.numberOfGroups = numGroups;
+      }
+      if (availableKarts !== undefined) {
+        const karts = parseAvailableKartsPut(availableKarts);
+        if (karts === null) {
+          return NextResponse.json(
+            { error: "Available karts must be a list of unique integers (e.g. comma-separated)" },
+            { status: 400 }
+          );
+        }
+        data.availableKarts = karts;
+      }
+    }
+
     const round = await db.round.update({
       where: { id: params.id },
-      data: {
-        name: name.trim(),
-        date: roundDate,
-        trackId,
-        championshipId,
-      },
+      data,
       include: {
         track: true,
         championship: {

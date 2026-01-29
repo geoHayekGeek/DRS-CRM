@@ -23,6 +23,9 @@ interface Round {
   date: string;
   trackId: string;
   championshipId: string;
+  numberOfGroups: number;
+  availableKarts: number[];
+  setupCompleted: boolean;
   track: Track;
   championship: Championship;
 }
@@ -44,7 +47,10 @@ export default function EditRoundPage() {
     date: "",
     trackId: "",
     championshipId: "",
+    numberOfGroups: "4",
+    availableKarts: "",
   });
+  const [setupCompleted, setSetupCompleted] = useState(false);
 
   useEffect(() => {
     fetchTracks();
@@ -93,11 +99,14 @@ export default function EditRoundPage() {
       }
       const round: Round = await response.json();
       const dateStr = new Date(round.date).toISOString().split("T")[0];
+      setSetupCompleted(round.setupCompleted ?? false);
       setFormData({
         name: round.name,
         date: dateStr,
         trackId: round.trackId,
-        championshipId: round.championshipId,
+        championshipId: round.championshipId ?? "",
+        numberOfGroups: String(round.numberOfGroups ?? 4),
+        availableKarts: (round.availableKarts ?? []).join(", "),
       });
     } catch (err) {
       const errorMessage = "Failed to load round";
@@ -138,12 +147,44 @@ export default function EditRoundPage() {
         return;
       }
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: formData.name.trim(),
         date: formData.date,
         trackId: formData.trackId,
         championshipId: formData.championshipId,
       };
+
+      if (!setupCompleted) {
+        const numGroups = parseInt(formData.numberOfGroups, 10);
+        if (isNaN(numGroups) || numGroups < 1) {
+          setError("Number of groups must be at least 1");
+          setSaving(false);
+          return;
+        }
+        const kartsRaw = formData.availableKarts
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const karts: number[] = [];
+        const seen = new Set<number>();
+        for (const p of kartsRaw) {
+          const n = parseInt(p, 10);
+          if (isNaN(n) || !Number.isInteger(n)) {
+            setError("Available karts must be unique integers (e.g. 1, 2, 3, 4)");
+            setSaving(false);
+            return;
+          }
+          if (seen.has(n)) {
+            setError("Kart numbers must be unique");
+            setSaving(false);
+            return;
+          }
+          seen.add(n);
+          karts.push(n);
+        }
+        payload.numberOfGroups = numGroups;
+        payload.availableKarts = karts;
+      }
 
       const response = await fetch(`/api/admin/rounds/${id}`, {
         method: "PUT",
@@ -258,6 +299,51 @@ export default function EditRoundPage() {
                 ))}
               </select>
             </div>
+
+            {!setupCompleted && (
+              <>
+                <div>
+                  <label htmlFor="numberOfGroups" className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of groups *
+                  </label>
+                  <input
+                    id="numberOfGroups"
+                    type="number"
+                    min={1}
+                    required
+                    value={formData.numberOfGroups}
+                    onChange={(e) => setFormData({ ...formData, numberOfGroups: e.target.value })}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                    style={{
+                      "--tw-ring-color": theme.colors.primary.red,
+                    } as React.CSSProperties & { "--tw-ring-color": string }}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="availableKarts" className="block text-sm font-medium text-gray-700 mb-2">
+                    Available karts *
+                  </label>
+                  <input
+                    id="availableKarts"
+                    type="text"
+                    required
+                    value={formData.availableKarts}
+                    onChange={(e) => setFormData({ ...formData, availableKarts: e.target.value })}
+                    placeholder="e.g. 1, 2, 3, 4, 5, 6, 7, 8"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                    style={{
+                      "--tw-ring-color": theme.colors.primary.red,
+                    } as React.CSSProperties & { "--tw-ring-color": string }}
+                  />
+                </div>
+              </>
+            )}
+            {setupCompleted && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm font-medium text-gray-700">Setup completed</p>
+                <p className="text-xs text-gray-500 mt-1">Number of groups and available karts cannot be changed after setup.</p>
+              </div>
+            )}
 
             <div>
               <label htmlFor="trackId" className="block text-sm font-medium text-gray-700 mb-2">

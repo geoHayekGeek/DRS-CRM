@@ -58,16 +58,19 @@ model Championship {
 }
 
 model Round {
-  id             String            @id @default(uuid())
-  name           String
-  date           DateTime
-  trackId        String            @map("track_id")
-  track          Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  championshipId String?           @map("championship_id")
-  championship   Championship?     @relation(fields: [championshipId], references: [id], onDelete: Cascade)
-  createdAt      DateTime          @default(now()) @map("created_at")
-  updatedAt      DateTime          @updatedAt @map("updated_at")
-  sessions       Session[]
+  id               String            @id @default(uuid())
+  name             String
+  date             DateTime
+  trackId          String            @map("track_id")
+  track            Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  championshipId   String?           @map("championship_id")
+  championship     Championship?     @relation(fields: [championshipId], references: [id], onDelete: Cascade)
+  numberOfGroups   Int               @default(4) @map("number_of_groups")
+  availableKarts   Int[]             @default([]) @map("available_karts")
+  setupCompleted   Boolean           @default(false) @map("setup_completed")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  sessions         Session[]
   groupAssignments GroupAssignment[]
 
   @@map("rounds")

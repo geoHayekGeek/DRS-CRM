@@ -31,6 +31,8 @@ export default function NewRoundPage() {
     date: "",
     trackId: "",
     championshipId: "",
+    numberOfGroups: "4",
+    availableKarts: "",
   });
 
   useEffect(() => {
@@ -120,11 +122,42 @@ export default function NewRoundPage() {
         return;
       }
 
+      const numGroups = parseInt(formData.numberOfGroups, 10);
+      if (isNaN(numGroups) || numGroups < 1) {
+        setError("Number of groups must be at least 1");
+        setLoading(false);
+        return;
+      }
+
+      const kartsRaw = formData.availableKarts
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const karts: number[] = [];
+      const seen = new Set<number>();
+      for (const p of kartsRaw) {
+        const n = parseInt(p, 10);
+        if (isNaN(n) || !Number.isInteger(n)) {
+          setError("Available karts must be unique integers (e.g. 1, 2, 3, 4)");
+          setLoading(false);
+          return;
+        }
+        if (seen.has(n)) {
+          setError("Kart numbers must be unique");
+          setLoading(false);
+          return;
+        }
+        seen.add(n);
+        karts.push(n);
+      }
+
       const payload = {
         name: formData.name.trim(),
         date: formData.date,
         trackId: formData.trackId,
         championshipId: formData.championshipId,
+        numberOfGroups: numGroups,
+        availableKarts: karts,
       };
 
       const response = await fetch("/api/admin/rounds", {
@@ -252,6 +285,44 @@ export default function NewRoundPage() {
                   ))}
                 </select>
               )}
+            </div>
+
+            <div>
+              <label htmlFor="numberOfGroups" className="block text-sm font-medium text-gray-700 mb-2">
+                Number of groups *
+              </label>
+              <input
+                id="numberOfGroups"
+                type="number"
+                min={1}
+                required
+                value={formData.numberOfGroups}
+                onChange={(e) => setFormData({ ...formData, numberOfGroups: e.target.value })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                style={{
+                  "--tw-ring-color": theme.colors.primary.red,
+                } as React.CSSProperties & { "--tw-ring-color": string }}
+              />
+              <p className="mt-1 text-xs text-gray-500">Drivers will be split evenly into this many groups (e.g. 4 for A, B, C, D).</p>
+            </div>
+
+            <div>
+              <label htmlFor="availableKarts" className="block text-sm font-medium text-gray-700 mb-2">
+                Available karts *
+              </label>
+              <input
+                id="availableKarts"
+                type="text"
+                required
+                value={formData.availableKarts}
+                onChange={(e) => setFormData({ ...formData, availableKarts: e.target.value })}
+                placeholder="e.g. 1, 2, 3, 4, 5, 6, 7, 8"
+                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                style={{
+                  "--tw-ring-color": theme.colors.primary.red,
+                } as React.CSSProperties & { "--tw-ring-color": string }}
+              />
+              <p className="mt-1 text-xs text-gray-500">Comma-separated unique kart numbers. Must be at least as many as drivers.</p>
             </div>
 
             <div>

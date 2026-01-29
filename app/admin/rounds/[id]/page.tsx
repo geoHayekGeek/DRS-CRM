@@ -23,6 +23,9 @@ interface Round {
   date: string;
   track: Track;
   championship: Championship;
+  numberOfGroups: number;
+  availableKarts: number[];
+  setupCompleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -130,6 +133,7 @@ export default function RoundDetailPage() {
                   }
 
                   toast.success("Round set up successfully");
+                  await fetchRound();
                   await fetchSessions();
                   await fetchAssignments();
                 } catch (err: any) {
@@ -210,7 +214,7 @@ export default function RoundDetailPage() {
             {round.name}
           </h1>
           <div className="flex gap-3">
-            {sessions.length === 0 && (
+            {!round.setupCompleted && (
               <button
                 onClick={handleSetup}
                 disabled={setupLoading}
@@ -258,6 +262,24 @@ export default function RoundDetailPage() {
                   {round.track.name}{round.track.location ? ` - ${round.track.location}` : ""}
                 </dd>
               </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Number of groups</dt>
+                <dd className="mt-1 text-sm text-gray-900">{round.numberOfGroups ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Available karts</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {round.availableKarts?.length
+                    ? round.availableKarts.join(", ")
+                    : "—"}
+                </dd>
+              </div>
+              {round.setupCompleted && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Setup status</dt>
+                  <dd className="mt-1 text-sm text-gray-900">Completed (groups and karts cannot be changed)</dd>
+                </div>
+              )}
               <div>
                 <dt className="text-sm font-medium text-gray-500">Created</dt>
                 <dd className="mt-1 text-sm text-gray-900">{formatDate(round.createdAt)}</dd>

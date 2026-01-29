@@ -11,6 +11,14 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+function getGroupLabels(count: number): string[] {
+  const labels: string[] = [];
+  for (let i = 0; i < count; i++) {
+    labels.push(String.fromCharCode(65 + i));
+  }
+  return labels;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -18,7 +26,6 @@ export async function POST(
   try {
     const roundId = params.id;
 
-    // Check if round exists
     const round = await db.round.findUnique({
       where: { id: roundId },
     });
@@ -30,7 +37,13 @@ export async function POST(
       );
     }
 
-    // Check if setup already done
+    if (round.setupCompleted) {
+      return NextResponse.json(
+        { error: "Round has already been set up" },
+        { status: 400 }
+      );
+    }
+
     const existingSessions = await db.session.findFirst({
       where: { roundId },
     });
@@ -42,9 +55,15 @@ export async function POST(
       );
     }
 
-    // Get all drivers
+    if (round.numberOfGroups < 1) {
+      return NextResponse.json(
+        { error: "Number of groups must be at least 1" },
+        { status: 400 }
+      );
+    }
+
     const drivers = await db.driver.findMany();
-    
+
     if (drivers.length === 0) {
       return NextResponse.json(
         { error: "No drivers found. Add drivers before setting up the round." },
@@ -52,21 +71,26 @@ export async function POST(
       );
     }
 
-    // Perform setup in a transaction
+    const availableKarts = round.availableKarts ?? [];
+    if (availableKarts.length < drivers.length) {
+      return NextResponse.json(
+        {
+          error: `Not enough karts. You have ${availableKarts.length} karts but ${drivers.length} drivers. Add at least ${drivers.length} kart numbers.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const groupLabels = getGroupLabels(round.numberOfGroups);
+
     await db.$transaction(async (tx) => {
-      // Shuffle drivers and assign to groups
       const shuffledDrivers = shuffleArray(drivers);
-      const groups = ["A", "B", "C", "D"];
-      const driversPerGroup = Math.ceil(shuffledDrivers.length / groups.length);
+      const shuffledKarts = shuffleArray([...availableKarts]);
 
-      // Create group assignments
       const groupAssignments: Prisma.GroupAssignmentCreateManyInput[] = [];
-      const kartNumbers = Array.from({ length: shuffledDrivers.length }, (_, i) => i + 1);
-      const shuffledKarts = shuffleArray(kartNumbers);
-
       shuffledDrivers.forEach((driver, index) => {
-        const groupIndex = Math.floor(index / driversPerGroup);
-        const group = groups[Math.min(groupIndex, groups.length - 1)];
+        const groupIndex = index % groupLabels.length;
+        const group = groupLabels[groupIndex];
         const kartNumber = shuffledKarts[index];
 
         groupAssignments.push({
@@ -81,11 +105,9 @@ export async function POST(
         data: groupAssignments,
       });
 
-      // Create sessions
       const sessions: Prisma.SessionCreateManyInput[] = [];
       let order = 1;
 
-      // 4 Qualifying sessions
       for (let i = 1; i <= 4; i++) {
         sessions.push({
           roundId,
@@ -95,8 +117,7 @@ export async function POST(
         });
       }
 
-      // 4 Group races (A, B, C, D)
-      for (const group of groups) {
+      for (const group of groupLabels) {
         sessions.push({
           roundId,
           type: "RACE",
@@ -105,7 +126,6 @@ export async function POST(
         });
       }
 
-      // 1 Final Qualifying
       sessions.push({
         roundId,
         type: "FINAL_QUALIFYING",
@@ -113,7 +133,6 @@ export async function POST(
         order: order++,
       });
 
-      // 1 Final Race
       sessions.push({
         roundId,
         type: "FINAL_RACE",
@@ -123,6 +142,11 @@ export async function POST(
 
       await tx.session.createMany({
         data: sessions,
+      });
+
+      await tx.round.update({
+        where: { id: roundId },
+        data: { setupCompleted: true },
       });
     });
 

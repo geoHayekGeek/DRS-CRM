@@ -27,10 +27,30 @@ export async function GET() {
   }
 }
 
+function parseAvailableKarts(value: unknown): number[] | null {
+  if (Array.isArray(value)) {
+    const nums = value.filter((x) => typeof x === "number" && Number.isInteger(x));
+    const unique = [...new Set(nums)];
+    return unique.length === nums.length ? unique : null;
+  }
+  if (typeof value === "string") {
+    const parts = value.split(",").map((s) => s.trim()).filter(Boolean);
+    const nums: number[] = [];
+    for (const p of parts) {
+      const n = parseInt(p, 10);
+      if (isNaN(n) || !Number.isInteger(n)) return null;
+      nums.push(n);
+    }
+    const unique = [...new Set(nums)];
+    return unique.length === nums.length ? unique : null;
+  }
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, date, trackId, championshipId } = body;
+    const { name, date, trackId, championshipId, numberOfGroups, availableKarts } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
@@ -68,6 +88,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const numGroups =
+      numberOfGroups !== undefined && numberOfGroups !== null
+        ? Number(numberOfGroups)
+        : 4;
+    if (!Number.isInteger(numGroups) || numGroups < 1) {
+      return NextResponse.json(
+        { error: "Number of groups must be at least 1" },
+        { status: 400 }
+      );
+    }
+
+    const karts = parseAvailableKarts(availableKarts);
+    if (karts === null) {
+      return NextResponse.json(
+        { error: "Available karts must be a list of unique integers (e.g. comma-separated)" },
+        { status: 400 }
+      );
+    }
+
     const track = await db.track.findUnique({
       where: { id: trackId },
     });
@@ -96,6 +135,8 @@ export async function POST(request: NextRequest) {
         date: roundDate,
         trackId,
         championshipId,
+        numberOfGroups: numGroups,
+        availableKarts: karts,
       },
       include: {
         track: true,
