@@ -36,6 +36,7 @@ export async function GET(
         points: true,
         session: {
           select: {
+            id: true,
             type: true,
             group: true,
             order: true,
@@ -116,6 +117,7 @@ export async function GET(
       trackName: string;
       roundPoints: number;
       sessions: {
+        sessionId: string;
         sessionType: string;
         group: string | null;
         position: number;
@@ -172,6 +174,7 @@ export async function GET(
       const roundEntry = roundMap.get(roundId)!;
       roundEntry.roundPoints += points;
       roundEntry.sessions.push({
+        sessionId: r.session.id,
         sessionType,
         group,
         position,

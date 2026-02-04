@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
@@ -36,6 +38,7 @@ interface StandingsData {
 }
 
 export default function StandingsPage() {
+  const searchParams = useSearchParams();
   const [championships, setChampionships] = useState<Championship[]>([]);
   const [selectedChampionshipId, setSelectedChampionshipId] = useState<string>("");
   const [standingsData, setStandingsData] = useState<StandingsData | null>(null);
@@ -43,10 +46,20 @@ export default function StandingsPage() {
   const [standingsLoading, setStandingsLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedDriverId, setExpandedDriverId] = useState<string | null>(null);
+  const hasAppliedUrlRef = useRef(false);
 
   useEffect(() => {
     fetchChampionships();
   }, []);
+
+  useEffect(() => {
+    if (championshipsLoading || championships.length === 0 || hasAppliedUrlRef.current) return;
+    const idFromUrl = searchParams.get("championshipId");
+    if (idFromUrl && championships.some((c) => c.id === idFromUrl)) {
+      setSelectedChampionshipId(idFromUrl);
+      hasAppliedUrlRef.current = true;
+    }
+  }, [championshipsLoading, championships, searchParams]);
 
   useEffect(() => {
     if (selectedChampionshipId) {
@@ -178,7 +191,12 @@ export default function StandingsPage() {
                         {index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {standing.fullName}
+                        <Link
+                          href={`/admin/drivers/${standing.driverId}`}
+                          className="hover:underline"
+                        >
+                          {standing.fullName}
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                         {standing.totalPoints}

@@ -257,7 +257,7 @@ export default function EditDriverPage() {
                     <button
                       type="button"
                       onClick={() => setRemoveImage(false)}
-                      className="mt-2 text-sm text-gray-600 hover:text-gray-900 underline"
+                      className="mt-2 text-sm text-white hover:text-gray-900 underline"
                     >
                       Keep current image
                     </button>

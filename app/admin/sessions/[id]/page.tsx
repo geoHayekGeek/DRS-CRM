@@ -258,13 +258,38 @@ export default function SessionResultsPage() {
     sessionData.session.type === "RACE" ||
     sessionData.session.type === "FINAL_RACE";
 
+  const hasResults = sessionData.drivers.some((d) => d.result != null);
+
+  const handleExport = async (format: "pdf" | "xlsx") => {
+    try {
+      const res = await fetch(`/api/admin/exports/sessions/${id}?format=${format}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error || "Export failed");
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="?([^";\n]+)"?/);
+      const filename = match?.[1] ?? `session-export.${format}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Export failed");
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <button
             onClick={() => router.push(`/admin/rounds/${sessionData.round.id}`)}
-            className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block"
+            className="text-sm text-white hover:text-white-700 mb-4 inline-block"
           >
             ← Back to Round
           </button>
@@ -274,7 +299,7 @@ export default function SessionResultsPage() {
           >
             {getSessionName()}
           </h1>
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-sm text-white">
             <p>
               <span className="font-medium">Championship:</span>{" "}
               {sessionData.round.championship.name}
@@ -318,17 +343,35 @@ export default function SessionResultsPage() {
             )}
 
             <div>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
                 <h2 className="text-lg font-heading font-semibold text-gray-900">
                   Results
                 </h2>
-                <button
-                  type="button"
-                  onClick={handleAutoFill}
-                  className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50"
-                >
-                  Auto-fill Positions
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAutoFill}
+                    className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50"
+                  >
+                    Auto-fill Positions
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExport("pdf")}
+                    disabled={!hasResults}
+                    className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Export PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExport("xlsx")}
+                    disabled={!hasResults}
+                    className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Export Excel
+                  </button>
+                </div>
               </div>
 
               <div className="overflow-x-auto">

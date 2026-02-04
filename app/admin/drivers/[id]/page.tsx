@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
@@ -8,6 +9,7 @@ import { theme } from "@/lib/theme";
 type SessionType = "QUALIFYING" | "RACE" | "FINAL_QUALIFYING" | "FINAL_RACE";
 
 interface PerformanceSession {
+  sessionId: string;
   sessionType: string;
   group: string | null;
   position: number;
@@ -269,8 +271,17 @@ export default function DriverDetailPage() {
                       <tbody className="divide-y divide-gray-200">
                         {championships.map((champ) => (
                           <tr key={champ.championshipId || champ.championshipName}>
-                            <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                              {champ.championshipName}
+                            <td className="px-4 py-2 text-sm whitespace-nowrap">
+                              {champ.championshipId ? (
+                                <Link
+                                  href={`/admin/standings?championshipId=${champ.championshipId}`}
+                                  className="text-gray-900 hover:underline"
+                                >
+                                  {champ.championshipName}
+                                </Link>
+                              ) : (
+                                <span className="text-gray-900">{champ.championshipName}</span>
+                              )}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-900 text-right">
                               {champ.totalPoints}
@@ -309,24 +320,25 @@ export default function DriverDetailPage() {
                                 key={round.roundId}
                                 className="border-b border-gray-200 last:border-b-0"
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => toggleRound(round.roundId)}
-                                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                                >
-                                  <span className="text-sm font-medium text-gray-900">
+                                <div className="px-4 py-3 flex items-center justify-between gap-2 hover:bg-gray-50 transition-colors">
+                                  <Link
+                                    href={`/admin/rounds/${round.roundId}`}
+                                    className="text-sm font-medium text-gray-900 hover:underline flex-1 min-w-0"
+                                  >
                                     {round.roundName}
-                                  </span>
-                                  <span className="text-sm text-gray-600">
+                                  </Link>
+                                  <span className="text-sm text-gray-600 shrink-0">
                                     {round.trackName} · {round.roundPoints} pts
                                   </span>
-                                  <span
-                                    className="text-gray-500 text-sm"
-                                    aria-hidden
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleRound(round.roundId)}
+                                    className="shrink-0 text-gray-500 text-sm p-1 hover:text-gray-700"
+                                    aria-label={isExpanded ? "Collapse" : "Expand"}
                                   >
                                     {isExpanded ? "−" : "+"}
-                                  </span>
-                                </button>
+                                  </button>
+                                </div>
                                 {isExpanded && (
                                   <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                                     <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
@@ -369,9 +381,14 @@ export default function DriverDetailPage() {
                                       </thead>
                                       <tbody className="divide-y divide-gray-200">
                                         {round.sessions.map((session, idx) => (
-                                          <tr key={`${round.roundId}-${idx}`}>
-                                            <td className="px-3 py-1.5 text-sm text-gray-900">
-                                              {formatSessionType(session.sessionType)}
+                                          <tr key={session.sessionId}>
+                                            <td className="px-3 py-1.5 text-sm">
+                                              <Link
+                                                href={`/admin/sessions/${session.sessionId}`}
+                                                className="text-gray-900 hover:underline"
+                                              >
+                                                {formatSessionType(session.sessionType)}
+                                              </Link>
                                             </td>
                                             <td className="px-3 py-1.5 text-sm text-gray-900">
                                               {session.group ?? "—"}
