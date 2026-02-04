@@ -7,24 +7,32 @@ import { theme } from "@/lib/theme";
 
 type SessionType = "QUALIFYING" | "RACE" | "FINAL_QUALIFYING" | "FINAL_RACE";
 
-interface SessionResultWithSession {
-  id: string;
+interface PerformanceSession {
+  sessionType: string;
+  group: string | null;
   position: number;
   points: number;
-  session: {
-    type: SessionType;
-    group: string | null;
-    order: number;
-    round: {
-      name: string;
-      date: string;
-      championship: { name: string } | null;
-      track: { name: string };
-    };
-  };
+  multiplier: string | null;
 }
 
-interface Driver {
+interface PerformanceRound {
+  roundId: string;
+  roundName: string;
+  trackName: string;
+  roundPoints: number;
+  sessions: PerformanceSession[];
+}
+
+interface PerformanceChampionship {
+  championshipId: string;
+  championshipName: string;
+  totalPoints: number;
+  roundsParticipated: number;
+  positionInChampionship: number | null;
+  rounds: PerformanceRound[];
+}
+
+interface PerformanceDriver {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
@@ -33,10 +41,14 @@ interface Driver {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
-  sessionResults?: SessionResultWithSession[];
 }
 
-function formatSessionType(type: SessionType): string {
+interface PerformanceResponse {
+  driver: PerformanceDriver;
+  championships: PerformanceChampionship[];
+}
+
+function formatSessionType(type: string): string {
   switch (type) {
     case "QUALIFYING":
       return "Qualifying";
@@ -51,28 +63,43 @@ function formatSessionType(type: SessionType): string {
   }
 }
 
+function formatMultiplier(multiplier: string | null): string {
+  if (!multiplier) return "—";
+  switch (multiplier) {
+    case "NORMAL":
+      return "1x";
+    case "HALF":
+      return "0.5x";
+    case "DOUBLE":
+      return "2x";
+    default:
+      return multiplier;
+  }
+}
+
 export default function DriverDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
-  const [driver, setDriver] = useState<Driver | null>(null);
+  const [data, setData] = useState<PerformanceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetchDriver();
+    fetchPerformance();
   }, [id]);
 
-  const fetchDriver = async () => {
+  const fetchPerformance = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/drivers/${id}`);
+      const response = await fetch(`/api/admin/drivers/${id}/performance`);
       if (!response.ok) {
         throw new Error("Failed to fetch driver");
       }
-      const data = await response.json();
-      setDriver(data);
+      const json = await response.json();
+      setData(json);
     } catch (err) {
       const errorMessage = "Failed to load driver";
       setError(errorMessage);
@@ -80,6 +107,15 @@ export default function DriverDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleRound = (roundId: string) => {
+    setExpandedRounds((prev) => {
+      const next = new Set(prev);
+      if (next.has(roundId)) next.delete(roundId);
+      else next.add(roundId);
+      return next;
+    });
   };
 
   if (loading) {
@@ -92,7 +128,7 @@ export default function DriverDetailPage() {
     );
   }
 
-  if (error || !driver) {
+  if (error || !data) {
     return (
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
@@ -115,7 +151,8 @@ export default function DriverDetailPage() {
     );
   }
 
-  const history = driver.sessionResults ?? [];
+  const { driver, championships } = data;
+  const hasResults = championships.length > 0;
 
   return (
     <div className="p-8">
@@ -158,8 +195,9 @@ export default function DriverDetailPage() {
             </div>
             <div className="min-w-0">
               <h2 className="text-lg font-heading font-semibold text-gray-900 mb-2">
-                {driver.fullName}
+                Driver Information
               </h2>
+              <h3 className="text-base font-medium text-gray-800 mb-1">{driver.fullName}</h3>
               <dl className="space-y-1">
                 {driver.weight != null && (
                   <div>
@@ -184,59 +222,183 @@ export default function DriverDetailPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Race History</h2>
-            {history.length === 0 ? (
-              <p className="text-sm text-gray-500">No results yet.</p>
+            <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">
+              Performance Breakdown
+            </h2>
+            {!hasResults ? (
+              <p className="text-sm text-gray-500">
+                This driver has not participated in any sessions yet.
+              </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Championship
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Round
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Session
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Group
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Position
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Points
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {history.map((result) => (
-                      <tr key={result.id}>
-                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                          {result.session.round.championship?.name ?? "—"}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                          {result.session.round.name}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                          {formatSessionType(result.session.type)}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                          {result.session.group ?? "—"}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                          {result.position}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                          {result.points}
-                        </td>
-                      </tr>
+              <div className="space-y-8">
+                {/* 4.1 Championship Summary */}
+                <section>
+                  <h3 className="text-base font-heading font-semibold text-gray-800 mb-3">
+                    Championship Summary
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th
+                            scope="col"
+                            className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Championship
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Total points
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Rounds participated
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Position
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {championships.map((champ) => (
+                          <tr key={champ.championshipId || champ.championshipName}>
+                            <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
+                              {champ.championshipName}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                              {champ.totalPoints}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                              {champ.roundsParticipated}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                              {champ.positionInChampionship != null
+                                ? champ.positionInChampionship
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                {/* 4.2 Round Breakdown + 4.3 Session History (expand/collapse) */}
+                <section>
+                  <h3 className="text-base font-heading font-semibold text-gray-800 mb-3">
+                    Round Breakdown
+                  </h3>
+                  <div className="space-y-2">
+                    {championships.map((champ) => (
+                      <div key={champ.championshipId || champ.championshipName}>
+                        <div className="text-sm font-medium text-gray-700 mb-2">
+                          {champ.championshipName}
+                        </div>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          {champ.rounds.map((round) => {
+                            const isExpanded = expandedRounds.has(round.roundId);
+                            return (
+                              <div
+                                key={round.roundId}
+                                className="border-b border-gray-200 last:border-b-0"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => toggleRound(round.roundId)}
+                                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                                >
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {round.roundName}
+                                  </span>
+                                  <span className="text-sm text-gray-600">
+                                    {round.trackName} · {round.roundPoints} pts
+                                  </span>
+                                  <span
+                                    className="text-gray-500 text-sm"
+                                    aria-hidden
+                                  >
+                                    {isExpanded ? "−" : "+"}
+                                  </span>
+                                </button>
+                                {isExpanded && (
+                                  <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                                    <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                                      Session History
+                                    </h4>
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                      <thead>
+                                        <tr>
+                                          <th
+                                            scope="col"
+                                            className="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase"
+                                          >
+                                            Session
+                                          </th>
+                                          <th
+                                            scope="col"
+                                            className="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase"
+                                          >
+                                            Group
+                                          </th>
+                                          <th
+                                            scope="col"
+                                            className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
+                                          >
+                                            Position
+                                          </th>
+                                          <th
+                                            scope="col"
+                                            className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
+                                          >
+                                            Points
+                                          </th>
+                                          <th
+                                            scope="col"
+                                            className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
+                                          >
+                                            Multiplier
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-200">
+                                        {round.sessions.map((session, idx) => (
+                                          <tr key={`${round.roundId}-${idx}`}>
+                                            <td className="px-3 py-1.5 text-sm text-gray-900">
+                                              {formatSessionType(session.sessionType)}
+                                            </td>
+                                            <td className="px-3 py-1.5 text-sm text-gray-900">
+                                              {session.group ?? "—"}
+                                            </td>
+                                            <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
+                                              {session.position}
+                                            </td>
+                                            <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
+                                              {session.points}
+                                            </td>
+                                            <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
+                                              {formatMultiplier(session.multiplier)}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </section>
               </div>
             )}
           </div>
