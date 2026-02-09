@@ -23,6 +23,26 @@ Reference: [Prisma – Baseline an existing production database](https://www.pri
 
 ---
 
+## "The table championship_drivers does not exist" (P2021)
+
+This happens when a migration was **marked as applied** during baseline (`prisma migrate resolve --applied ...`) but its SQL was never run, so the table was never created.
+
+**Fix:** Create the missing table on the production database.
+
+**Option A – Prisma (recommended)**  
+In Railway’s shell (with `DATABASE_URL` set):
+
+```bash
+npx prisma db execute --file prisma/fix-championship-drivers.sql
+```
+
+**Option B – Run SQL in Railway’s PostgreSQL UI**  
+In Railway → your PostgreSQL service → Data or Query tab, run the contents of `prisma/fix-championship-drivers.sql`.
+
+After the table exists, restart the app; the error should go away.
+
+---
+
 ## Build / start commands
 
 - **Build:** `npm run build` (runs `prisma generate` and `next build`).
