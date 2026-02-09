@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
 
+const ALLOWED_TYPES = "image/jpeg,image/png,image/webp";
+const MAX_SIZE_MB = 5;
+
 interface Driver {
   id: string;
   fullName: string;
+  profileImageUrl: string | null;
   weight: number | null;
   height: number | null;
   notes: string | null;
@@ -17,10 +21,15 @@ export default function EditDriverPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     weight: "",
@@ -46,6 +55,7 @@ export default function EditDriverPage() {
         height: driver.height?.toString() || "",
         notes: driver.notes || "",
       });
+      setCurrentImageUrl(driver.profileImageUrl || null);
     } catch (err) {
       const errorMessage = "Failed to load driver";
       setError(errorMessage);
@@ -55,14 +65,60 @@ export default function EditDriverPage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setProfileFile(null);
+      if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+      setProfilePreviewUrl(null);
+      setRemoveImage(false);
+      return;
+    }
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast.error("Use JPG, PNG, or WebP only.");
+      return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File must be under ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+    setProfileFile(file);
+    setProfilePreviewUrl(URL.createObjectURL(file));
+    setRemoveImage(false);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSaving(true);
 
     try {
-      const payload: any = {
+      let profileImageUrl: string | null = currentImageUrl;
+
+      if (removeImage) {
+        profileImageUrl = null;
+      } else if (profileFile) {
+        const form = new FormData();
+        form.append("file", profileFile);
+        const uploadRes = await fetch("/api/admin/drivers/upload", {
+          method: "POST",
+          body: form,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          const msg = uploadData.error || "Upload failed";
+          setError(msg);
+          toast.error(msg);
+          setSaving(false);
+          return;
+        }
+        profileImageUrl = uploadData.url ?? null;
+      }
+
+      const payload: Record<string, unknown> = {
         fullName: formData.fullName.trim(),
+        profileImageUrl,
       };
 
       if (formData.weight.trim()) {
@@ -125,8 +181,8 @@ export default function EditDriverPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-2xl mx-auto">
           <div className="text-gray-300">Loading driver...</div>
         </div>
       </div>
@@ -134,17 +190,82 @@ export default function EditDriverPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+      <div className="w-full max-w-2xl mx-auto">
         <h1
-          className="text-3xl font-heading font-semibold mb-6"
+          className="text-2xl sm:text-3xl font-heading font-semibold mb-6"
           style={{ color: theme.colors.primary.red }}
         >
           Edit Driver
         </h1>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profile image (optional)
+              </label>
+              {(currentImageUrl || profilePreviewUrl) && !removeImage ? (
+                <div className="flex items-center gap-4">
+                  <img
+                    src={profilePreviewUrl || currentImageUrl || ""}
+                    alt="Profile"
+                    className="h-24 w-24 rounded-full object-cover border border-gray-200"
+                  />
+                  <div className="space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={ALLOWED_TYPES}
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer"
+                      style={{
+                        // @ts-expect-error CSS custom property
+                        "--tw-file-color": theme.colors.primary.red,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRemoveImage(true);
+                        setProfileFile(null);
+                        if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+                        setProfilePreviewUrl(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="text-sm text-gray-600 hover:text-gray-900 underline"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ALLOWED_TYPES}
+                    onChange={handleFileChange}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer"
+                    style={{
+                      // @ts-expect-error CSS custom property
+                      "--tw-file-color": theme.colors.primary.red,
+                    }}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">JPG, PNG or WebP, max {MAX_SIZE_MB}MB</p>
+                  {removeImage && (
+                    <button
+                      type="button"
+                      onClick={() => setRemoveImage(false)}
+                      className="mt-2 text-sm text-white hover:text-gray-900 underline"
+                    >
+                      Keep current image
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name *
@@ -155,7 +276,7 @@ export default function EditDriverPage() {
                 required
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                className="block w-full min-h-[44px] px-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                 style={{
                   "--tw-ring-color": theme.colors.primary.red,
                 } as React.CSSProperties & { "--tw-ring-color": string }}
@@ -175,7 +296,7 @@ export default function EditDriverPage() {
                 min="0"
                 value={formData.weight}
                 onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                className="block w-full min-h-[44px] px-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                 style={{
                   "--tw-ring-color": theme.colors.primary.red,
                 } as React.CSSProperties & { "--tw-ring-color": string }}
@@ -196,7 +317,7 @@ export default function EditDriverPage() {
                 min="0"
                 value={formData.height}
                 onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                className="block w-full min-h-[44px] px-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                 style={{
                   "--tw-ring-color": theme.colors.primary.red,
                 } as React.CSSProperties & { "--tw-ring-color": string }}
@@ -215,7 +336,7 @@ export default function EditDriverPage() {
                 rows={4}
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                className="block w-full min-h-[44px] px-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                 style={{
                   "--tw-ring-color": theme.colors.primary.red,
                 } as React.CSSProperties & { "--tw-ring-color": string }}
@@ -236,11 +357,11 @@ export default function EditDriverPage() {
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto min-h-[44px] px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 style={{ backgroundColor: theme.colors.primary.red }}
                 onMouseEnter={(e) => !saving && (e.currentTarget.style.backgroundColor = "#A01516")}
                 onMouseLeave={(e) => !saving && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
@@ -251,7 +372,7 @@ export default function EditDriverPage() {
                 type="button"
                 onClick={() => router.push(`/admin/drivers/${id}`)}
                 disabled={saving}
-                className="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="w-full sm:w-auto min-h-[44px] px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 flex items-center justify-center"
               >
                 Cancel
               </button>
