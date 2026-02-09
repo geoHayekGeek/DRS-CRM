@@ -84,9 +84,6 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </div>
 
       <nav className="flex-1 py-4 sidebar-nav overflow-y-auto overflow-x-hidden">
-        <SidebarLink href="/admin" collapsed={collapsed}>
-          Dashboard
-        </SidebarLink>
         <SidebarLink href="/admin/drivers" collapsed={collapsed}>
           Drivers
         </SidebarLink>
