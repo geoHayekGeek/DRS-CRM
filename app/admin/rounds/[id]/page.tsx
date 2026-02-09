@@ -15,6 +15,7 @@ interface Championship {
   id: string;
   name: string;
   isCurrent: boolean;
+  _count?: { championshipDrivers: number };
 }
 
 interface Round {
@@ -171,6 +172,8 @@ export default function RoundDetailPage() {
   };
 
   const roundHasResults = sessions.some((s) => s.hasResults);
+  const assignedDriverCount = round?.championship?._count?.championshipDrivers ?? 0;
+  const canSetup = !round?.setupCompleted && assignedDriverCount > 0;
 
   const handleExport = async (format: "pdf" | "xlsx") => {
     try {
@@ -240,16 +243,23 @@ export default function RoundDetailPage() {
           </h1>
           <div className="flex flex-wrap gap-3">
             {!round.setupCompleted && (
-              <button
-                onClick={handleSetup}
-                disabled={setupLoading}
-                className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: theme.colors.primary.red }}
-                onMouseEnter={(e) => !setupLoading && (e.currentTarget.style.backgroundColor = "#A01516")}
-                onMouseLeave={(e) => !setupLoading && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
-              >
-                {setupLoading ? "Setting up..." : "Setup Round"}
-              </button>
+              <>
+                {round.championship && assignedDriverCount === 0 && (
+                  <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    No drivers assigned to this championship. Assign drivers on the championship page to enable round setup.
+                  </p>
+                )}
+                <button
+                  onClick={handleSetup}
+                  disabled={setupLoading || !canSetup}
+                  className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: theme.colors.primary.red }}
+                  onMouseEnter={(e) => !setupLoading && canSetup && (e.currentTarget.style.backgroundColor = "#A01516")}
+                  onMouseLeave={(e) => !setupLoading && canSetup && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+                >
+                  {setupLoading ? "Setting up..." : "Setup Round"}
+                </button>
+              </>
             )}
             <button
               onClick={() => handleExport("pdf")}

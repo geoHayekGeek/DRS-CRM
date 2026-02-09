@@ -15,6 +15,7 @@ export async function GET(
             id: true,
             name: true,
             isCurrent: true,
+            _count: { select: { championshipDrivers: true } },
           },
         },
       },

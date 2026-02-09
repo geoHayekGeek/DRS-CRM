@@ -62,11 +62,22 @@ export async function POST(
       );
     }
 
-    const drivers = await db.driver.findMany();
+    if (!round.championshipId) {
+      return NextResponse.json(
+        { error: "Round must belong to a championship" },
+        { status: 400 }
+      );
+    }
+
+    const championshipDrivers = await db.championshipDriver.findMany({
+      where: { championshipId: round.championshipId },
+      include: { driver: true },
+    });
+    const drivers = championshipDrivers.map((cd) => cd.driver);
 
     if (drivers.length === 0) {
       return NextResponse.json(
-        { error: "No drivers found. Add drivers before setting up the round." },
+        { error: "No drivers assigned to this championship. Assign drivers on the championship page before setting up the round." },
         { status: 400 }
       );
     }
