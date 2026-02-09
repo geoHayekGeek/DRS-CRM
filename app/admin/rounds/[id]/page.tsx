@@ -200,8 +200,8 @@ export default function RoundDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div className="text-gray-300">Loading round details...</div>
         </div>
       </div>
@@ -210,8 +210,8 @@ export default function RoundDetailPage() {
 
   if (error || !round) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div
             className="bg-red-50 border-l-4 p-4 rounded-r-lg mb-4"
             style={{ borderLeftColor: theme.colors.primary.red }}
@@ -232,16 +232,16 @@ export default function RoundDetailPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-start mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
           <h1
-            className="text-3xl font-heading font-semibold"
+            className="text-2xl sm:text-3xl font-heading font-semibold break-words"
             style={{ color: theme.colors.primary.red }}
           >
             {round.name}
           </h1>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 shrink-0">
             {!round.setupCompleted && (
               <>
                 {round.championship && assignedDriverCount === 0 && (
@@ -343,7 +343,7 @@ export default function RoundDetailPage() {
           {assignments.length > 0 && (
             <div>
               <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Group Assignments</h2>
-              <div className="mt-4 overflow-hidden">
+              <div className="mt-4 overflow-x-auto overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
@@ -383,7 +383,7 @@ export default function RoundDetailPage() {
             {sessions.length === 0 ? (
               <p className="text-sm text-gray-500">No sessions have been created for this round yet. Click "Setup Round" to generate sessions and assignments.</p>
             ) : (
-              <div className="mt-4 overflow-hidden">
+              <div className="mt-4 overflow-x-auto overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">

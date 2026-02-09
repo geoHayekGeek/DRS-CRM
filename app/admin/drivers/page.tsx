@@ -100,18 +100,18 @@ export default function DriversPage() {
   };
 
   return (
-    <div className="p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
           <h1
-            className="text-3xl font-heading font-semibold"
+            className="text-2xl sm:text-3xl font-heading font-semibold"
             style={{ color: theme.colors.primary.red }}
           >
             Drivers
           </h1>
           <button
             onClick={() => router.push("/admin/drivers/new")}
-            className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200"
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center"
             style={{ backgroundColor: theme.colors.primary.red }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
@@ -133,8 +133,8 @@ export default function DriversPage() {
         ) : drivers.length === 0 ? (
           <div className="text-gray-300">No drivers found. Add your first driver to get started.</div>
         ) : (
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
