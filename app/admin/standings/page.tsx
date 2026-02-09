@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -37,7 +37,7 @@ interface StandingsData {
   standings: Standing[];
 }
 
-export default function StandingsPage() {
+function StandingsContent() {
   const searchParams = useSearchParams();
   const [championships, setChampionships] = useState<Championship[]>([]);
   const [selectedChampionshipId, setSelectedChampionshipId] = useState<string>("");
@@ -270,5 +270,19 @@ export default function StandingsPage() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+export default function StandingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    }>
+      <StandingsContent />
+    </Suspense>
   );
 }
