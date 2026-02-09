@@ -21,8 +21,8 @@ const SEED_TRACKS = [
 ];
 
 async function main() {
-  const email = process.env.SEED_ADMIN_EMAIL || "admin@drs-cup.com";
-  const password = process.env.SEED_ADMIN_PASSWORD || "ChangeMe123!";
+  const email = process.env.SEED_ADMIN_EMAIL || "admin@drs.com";
+  const password = process.env.SEED_ADMIN_PASSWORD || "admin123";
 
   const existingAdmin = await prisma.adminUser.findUnique({
     where: { email },
