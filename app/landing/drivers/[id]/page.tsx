@@ -7,7 +7,6 @@ export default function DriverDetailsPage({ params }: { params: { id: string } }
 
   return (
     <>
-    <Navbar/>
     <div className="min-h-screen bg-white pt-20 px-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-bold capitalize mb-4">
@@ -23,7 +22,6 @@ export default function DriverDetailsPage({ params }: { params: { id: string } }
         </div>
       </div>
     </div>
-    <Footer/>
     </>
   );
 }

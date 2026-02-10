@@ -16,7 +16,7 @@ const Championship = () => {
   ];
 
   return (
-    <section className="py-20 bg-gray-50 border-t border-gray-200" id="championship">
+    <section className="py-20  border-t border-gray-200" id="championship">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">

@@ -42,10 +42,9 @@ const DriversSpotlight = () => {
   ];
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 ">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
         <div className="flex justify-between items-end mb-12 border-b border-gray-100 pb-6">
           <div>
             <span className="text-red-600 font-bold tracking-widest text-xs uppercase mb-2 block">Season 2026</span>
