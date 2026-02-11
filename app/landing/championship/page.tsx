@@ -1,7 +1,7 @@
 import RoundsPage from '@/components/landing/RoundsPage';
 import React from 'react';
 
-export default function Rounds() {
+export default function championship() {
   return (
    <div className="min-h-screen flex flex-col bg-white">
 

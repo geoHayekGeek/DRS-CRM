@@ -16,7 +16,7 @@ const Navbar = () => {
           
           <div className="hidden md:flex justify-start space-x-8">
             <NavItem href="/landing/drivers">Drivers</NavItem>
-            <NavItem href="/landing/rounds">Rounds</NavItem>
+            <NavItem href="/landing/championship">Championship</NavItem>
           </div>
 
           <div className="flex justify-start md:justify-center items-center">
@@ -69,7 +69,7 @@ const Navbar = () => {
       >
         <div className="bg-white/90 backdrop-blur-xl border-b border-gray-200 shadow-2xl p-6 flex flex-col items-center space-y-4">
           <MobileNavItem href="/landing/drivers" delay="100ms">Drivers</MobileNavItem>
-          <MobileNavItem href="/landing/rounds" delay="200ms">Rounds</MobileNavItem>
+          <MobileNavItem href="/landing/championship" delay="200ms">Championship</MobileNavItem>
           {/* <div className="w-12 h-0.5 bg-gray-200 rounded-full my-2"></div>           */}
           <MobileNavItem href="/landing/race" delay="200ms">Race</MobileNavItem>
           <MobileNavItem href="/landing/about" delay="200ms">About</MobileNavItem>
