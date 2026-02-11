@@ -7,7 +7,6 @@ export default function DriversPage() {
   return (
    <div className="min-h-screen flex flex-col bg-white">
 
-      <Navbar />
       
       <main className="flex-grow">
         
@@ -17,7 +16,6 @@ export default function DriversPage() {
 
       </main>
 
-      <Footer />
     </div>
   );
 }

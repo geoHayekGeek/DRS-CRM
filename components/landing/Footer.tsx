@@ -6,99 +6,59 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
+    <footer className="bg-white/90 backdrop-blur-md border-t border-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
           
-          <div className="space-y-4">
-            <Link href="/" className="inline-block">
-              <Image 
-                src="/DRS-black.png"       
-                alt="Brand Logo" 
-                width={160}            
-                height={50}            
-                className="h-10 w-auto object-contain" 
-              />
-            </Link>
-            <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
-              Fueling the passion for racing. The ultimate community for fans, stats, and speed.
-            </p>
-            
-            <div className="flex space-x-4 pt-2">
-              <SocialIcon platform="whatsapp" />
-              <SocialIcon platform="instagram" />
-              <SocialIcon platform="tiktok" />
-              <SocialIcon platform="youtube" />
-            </div>
-          </div>
+          <Link href="/landing" className="flex-shrink-0">
+            <Image 
+              src="/DRS-black.png"       
+              alt="Brand Logo" 
+              width={120}            
+              height={40}            
+              className="h-8 w-auto object-contain hover:opacity-80 transition-opacity" 
+            />
+          </Link>
 
-          <div>
-            <h3 className="font-bold text-gray-900 mb-4 uppercase tracking-wider text-xs">Menu</h3>
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li>
-                <Link href="/landing/drivers" className="hover:text-red-600 transition font-medium">
-                  Drivers
-                </Link>
-              </li>
-              <li>
-                <Link href="/landing/rounds" className="hover:text-red-600 transition font-medium">
-                  Rounds
-                </Link>
-              </li>
-              <li>
-                <Link href="/landing/race" className="hover:text-red-600 transition font-medium">
-                  Race
-                </Link>
-              </li>
-              <li>
-                <Link href="/landing/about" className="hover:text-red-600 transition font-medium">
-                  About
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <nav className="flex flex-wrap justify-center gap-8">
+            <FooterLink href="/landing/drivers">Drivers</FooterLink>
+            <FooterLink href="/landing/rounds">Rounds</FooterLink>
+            <FooterLink href="/landing/race">Race</FooterLink>
+            <FooterLink href="/landing/about">About</FooterLink>
+          </nav>
 
-          <div>
-            <h3 className="font-bold text-gray-900 mb-4 uppercase tracking-wider text-xs">Support</h3>
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li><Link href="#" className="hover:text-red-600 transition">Contact Us</Link></li>
-              <li><Link href="#" className="hover:text-red-600 transition">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-red-600 transition">Terms of Service</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-gray-900 mb-4 uppercase tracking-wider text-xs">Race Updates</h3>
-            <p className="text-gray-500 text-sm mb-4">
-              Get the latest qualifying results sent to your inbox.
-            </p>
-            <form className="flex flex-col space-y-2">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="w-full px-4 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
-              />
-              <button 
-                type="button"
-                className="w-full px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition shadow-lg hover:shadow-red-200"
-              >
-                Subscribe
-              </button>
-            </form>
+          <div className="flex space-x-5">
+            <SocialIcon platform="whatsapp" />
+            <SocialIcon platform="instagram" />
+            <SocialIcon platform="tiktok" />
+            <SocialIcon platform="youtube" />
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-400 text-center md:text-left">
-            &copy; {currentYear} DRS Lane Inc. All rights reserved.
-          </p>
+        <div className="w-full h-px bg-gray-100 my-6"></div>
+
+        <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+          <p>&copy; {currentYear} CTRLY Agency Inc. All rights reserved.</p>
+          <div className="flex space-x-6 mt-2 md:mt-0">
+            <Link href="#" className="hover:text-gray-900 transition">Privacy Policy</Link>
+            <Link href="#" className="hover:text-gray-900 transition">Terms</Link>
+          </div>
         </div>
+
       </div>
     </footer>
   );
 };
 
+const FooterLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
+  <Link 
+    href={href} 
+    className="text-sm font-medium text-gray-500 hover:text-red-600 transition-colors uppercase tracking-wider"
+  >
+    {children}
+  </Link>
+);
 
 const SocialIcon = ({ platform }: { platform: 'whatsapp' | 'instagram' | 'tiktok' | 'youtube' }) => {
   const iconPaths = {
