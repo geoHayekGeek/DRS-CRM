@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { cleanupDirectory } from "@/lib/fs-cleanup";
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +18,9 @@ export async function GET(
             isCurrent: true,
             _count: { select: { championshipDrivers: true } },
           },
+        },
+        roundImages: {
+          orderBy: { createdAt: "asc" },
         },
       },
     });
@@ -216,6 +220,8 @@ export async function DELETE(
     await db.round.delete({
       where: { id: params.id },
     });
+
+    await cleanupDirectory(`uploads/rounds/${params.id}`);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

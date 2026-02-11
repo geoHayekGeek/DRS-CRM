@@ -18,6 +18,12 @@ interface Championship {
   _count?: { championshipDrivers: number };
 }
 
+interface RoundImage {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
 interface Round {
   id: string;
   name: string;
@@ -29,6 +35,7 @@ interface Round {
   setupCompleted: boolean;
   createdAt: string;
   updatedAt: string;
+  roundImages?: RoundImage[];
 }
 
 interface Session {
@@ -63,6 +70,8 @@ export default function RoundDetailPage() {
   const [loading, setLoading] = useState(true);
   const [setupLoading, setSetupLoading] = useState(false);
   const [error, setError] = useState("");
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRound();
@@ -169,6 +178,44 @@ export default function RoundDetailPage() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setGalleryUploading(true);
+      const uploads = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch(`/api/admin/rounds/${id}/images`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Upload failed");
+        }
+        return res.json();
+      });
+
+      const results = await Promise.all(uploads);
+      setRound((prev) =>
+        prev
+          ? {
+              ...prev,
+              roundImages: [...(prev.roundImages ?? []), ...results],
+            }
+          : null
+      );
+      toast.success(`${results.length} image${results.length > 1 ? "s" : ""} uploaded`);
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setGalleryUploading(false);
+      e.target.value = "";
+    }
   };
 
   const roundHasResults = sessions.some((s) => s.hasResults);
@@ -379,6 +426,80 @@ export default function RoundDetailPage() {
           )}
 
           <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-heading font-semibold text-gray-900">Round Gallery</h2>
+              <label
+                className="px-4 py-2 text-sm font-bold text-white rounded-lg cursor-pointer transition-all duration-200 shadow-lg"
+                style={{ 
+                  backgroundColor: theme.colors.primary.red,
+                  textShadow: "0 1px 3px rgba(0, 0, 0, 0.5)"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+              >
+                {galleryUploading ? "Uploading..." : "Add Images"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={handleGalleryUpload}
+                  disabled={galleryUploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {(round.roundImages?.length ?? 0) > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                {round.roundImages?.map((img) => (
+                  <div key={img.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setLightboxUrl(img.imageUrl)}
+                      className="block w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:ring-2 hover:ring-red-600 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                    >
+                      <img
+                        src={img.imageUrl}
+                        alt="Gallery"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/admin/rounds/images/${img.id}`, { method: "DELETE" });
+                          if (!res.ok) {
+                            const data = await res.json();
+                            toast.error(data.error || "Delete failed");
+                            return;
+                          }
+                          setRound((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  roundImages: prev.roundImages?.filter((i) => i.id !== img.id) ?? [],
+                                }
+                              : null
+                          );
+                          toast.success("Image removed");
+                        } catch {
+                          toast.error("Delete failed");
+                        }
+                      }}
+                      className="absolute top-2 right-2 px-2 py-1 text-xs font-medium text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ backgroundColor: theme.colors.primary.red }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mb-6">No gallery images uploaded yet.</p>
+            )}
+          </div>
+
+          <div>
             <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Sessions</h2>
             {sessions.length === 0 ? (
               <p className="text-sm text-gray-500">No sessions have been created for this round yet. Click "Setup Round" to generate sessions and assignments.</p>
@@ -463,6 +584,30 @@ export default function RoundDetailPage() {
           </button>
         </div>
       </div>
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="View image"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 px-3 py-1 text-sm font-medium text-white rounded bg-gray-700 hover:bg-gray-600"
+          >
+            Close
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Enlarged"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

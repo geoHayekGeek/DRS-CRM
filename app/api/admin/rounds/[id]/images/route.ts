@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir, unlink } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
 
@@ -17,11 +17,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const trackId = params.id;
-    const track = await db.track.findUnique({ where: { id: trackId } });
-    if (!track) {
+    const roundId = params.id;
+    const round = await db.round.findUnique({ where: { id: roundId } });
+    if (!round) {
       return NextResponse.json(
-        { error: "Track not found" },
+        { error: "Round not found" },
         { status: 404 }
       );
     }
@@ -51,7 +51,7 @@ export async function POST(
 
     const ext = MIME_TO_EXT[mime] || ".jpg";
     const filename = `${crypto.randomUUID()}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "tracks", trackId);
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "rounds", roundId);
     await mkdir(uploadDir, { recursive: true });
 
     const bytes = await file.arrayBuffer();
@@ -59,23 +59,16 @@ export async function POST(
     const filePath = path.join(uploadDir, filename);
     await writeFile(filePath, buffer);
 
-    const url = `/uploads/tracks/${trackId}/${filename}`;
-    
-    if (track.layoutImageUrl) {
-      const oldFilePath = path.join(process.cwd(), "public", track.layoutImageUrl);
-      try {
-        await unlink(oldFilePath);
-      } catch {
-        // Old file may not exist
-      }
-    }
-
-    await db.track.update({
-      where: { id: trackId },
-      data: { layoutImageUrl: url },
+    const imageUrl = `/uploads/rounds/${roundId}/${filename}`;
+    const roundImage = await db.roundImage.create({
+      data: { roundId, imageUrl },
     });
 
-    return NextResponse.json({ url });
+    return NextResponse.json({
+      id: roundImage.id,
+      imageUrl: roundImage.imageUrl,
+      createdAt: roundImage.createdAt,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Upload failed" },

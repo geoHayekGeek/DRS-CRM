@@ -40,6 +40,8 @@ export default function TrackDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [layoutUploading, setLayoutUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
 
   useEffect(() => {
     fetchTrack();
@@ -65,6 +67,75 @@ export default function TrackDetailPage() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleLayoutUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setLayoutUploading(true);
+      const res = await fetch(`/api/admin/tracks/${id}/layout`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Upload failed");
+        return;
+      }
+
+      const data = await res.json();
+      setTrack((prev) => (prev ? { ...prev, layoutImageUrl: data.url } : null));
+      toast.success("Layout image uploaded");
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setLayoutUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setGalleryUploading(true);
+      const uploads = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch(`/api/admin/tracks/${id}/images`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Upload failed");
+        }
+        return res.json();
+      });
+
+      const results = await Promise.all(uploads);
+      setTrack((prev) =>
+        prev
+          ? {
+              ...prev,
+              trackImages: [...(prev.trackImages ?? []), ...results],
+            }
+          : null
+      );
+      toast.success(`${results.length} image${results.length > 1 ? "s" : ""} uploaded`);
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setGalleryUploading(false);
+      e.target.value = "";
+    }
   };
 
   if (loading) {
@@ -122,9 +193,29 @@ export default function TrackDetailPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
-          {track.layoutImageUrl && (
-            <div>
-              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Track Layout</h2>
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-heading font-semibold text-gray-900">Track Layout</h2>
+              <label
+                className="px-4 py-2 text-sm font-bold text-white rounded-lg cursor-pointer transition-all duration-200 shadow-lg"
+                style={{ 
+                  backgroundColor: theme.colors.primary.red,
+                  textShadow: "0 1px 3px rgba(0, 0, 0, 0.5)"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+              >
+                {layoutUploading ? "Uploading..." : track.layoutImageUrl ? "Replace Layout" : "Upload Layout"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleLayoutUpload}
+                  disabled={layoutUploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {track.layoutImageUrl && (
               <div className="rounded-lg overflow-hidden border border-gray-200">
                 <img
                   src={track.layoutImageUrl}
@@ -132,10 +223,12 @@ export default function TrackDetailPage() {
                   className="w-full max-h-80 object-contain bg-gray-50"
                 />
               </div>
-            </div>
-          )}
+            )}
+            {!track.layoutImageUrl && (
+              <p className="text-sm text-gray-500">No layout image uploaded yet.</p>
+            )}
+          </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-6">
           <div>
             <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Track Information</h2>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -164,17 +257,37 @@ export default function TrackDetailPage() {
             </dl>
           </div>
 
-          {(track.trackImages?.length ?? 0) > 0 && (
-            <div>
-              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Photo Gallery</h2>
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-heading font-semibold text-gray-900">Photo Gallery</h2>
+              <label
+                className="px-4 py-2 text-sm font-bold text-white rounded-lg cursor-pointer transition-all duration-200 shadow-lg"
+                style={{ 
+                  backgroundColor: theme.colors.primary.red,
+                  textShadow: "0 1px 3px rgba(0, 0, 0, 0.5)"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+              >
+                {galleryUploading ? "Uploading..." : "Add Images"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={handleGalleryUpload}
+                  disabled={galleryUploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {(track.trackImages?.length ?? 0) > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {track.trackImages?.map((img) => (
                   <div key={img.id} className="relative group">
                     <button
                       type="button"
                       onClick={() => setLightboxUrl(img.imageUrl)}
-                      className="block w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:ring-2 focus:ring-2 focus:outline-none"
-                      style={{ ringColor: theme.colors.primary.red }}
+                      className="block w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:ring-2 hover:ring-red-600 focus:ring-2 focus:ring-red-600 focus:outline-none"
                     >
                       <img
                         src={img.imageUrl}
@@ -213,8 +326,10 @@ export default function TrackDetailPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-sm text-gray-500">No gallery images uploaded yet.</p>
+            )}
+          </div>
 
           <div>
             <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Rounds</h2>

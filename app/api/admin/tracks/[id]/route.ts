@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { cleanupDirectory } from "@/lib/fs-cleanup";
 
 export async function GET(
   request: NextRequest,
@@ -111,6 +112,8 @@ export async function DELETE(
     await db.track.delete({
       where: { id: params.id },
     });
+
+    await cleanupDirectory(`uploads/tracks/${params.id}`);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

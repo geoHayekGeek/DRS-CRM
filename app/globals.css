@@ -9,18 +9,20 @@
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-info: #3B82F6;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
 }
 
 html,
 body {
   margin: 0;
   overflow-x: hidden;
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Heading font utility class */
 .font-heading {
-  font-family: var(--font-heading), var(--font-inter), sans-serif;
+  font-family: var(--font-heading);
 }
 
 /* Hide scrollbar for sidebar navigation */
@@ -38,4 +40,29 @@ body {
   backdrop-filter: blur(1px) !important;
   -webkit-backdrop-filter: blur(4px) !important;
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* File input button styling for better text visibility */
+input[type="file"]::file-selector-button {
+  background-color: var(--color-brand-red);
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  background-color: var(--color-brand-red);
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+input[type="file"]::-ms-browse {
+  background-color: var(--color-brand-red);
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }

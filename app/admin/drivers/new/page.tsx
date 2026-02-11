@@ -146,10 +146,12 @@ export default function NewDriverPage() {
                 type="file"
                 accept={ALLOWED_TYPES}
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:text-white file:cursor-pointer file:shadow-lg"
                 style={{
                   // @ts-expect-error CSS custom property
                   "--tw-file-color": theme.colors.primary.red,
+                  // @ts-expect-error CSS custom property
+                  "--tw-file-text-shadow": "0 1px 3px rgba(0, 0, 0, 0.5)",
                 }}
               />
               <p className="mt-1 text-xs text-gray-500">JPG, PNG or WebP, max {MAX_SIZE_MB}MB</p>

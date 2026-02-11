@@ -98,8 +98,19 @@ model Round {
   updatedAt        DateTime          @updatedAt @map("updated_at")
   sessions         Session[]
   groupAssignments GroupAssignment[]
+  roundImages      RoundImage[]
 
   @@map("rounds")
+}
+
+model RoundImage {
+  id        String   @id @default(uuid())
+  roundId   String   @map("round_id")
+  round     Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  imageUrl  String   @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("round_images")
 }
 
 enum SessionType {
