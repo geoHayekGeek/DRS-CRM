@@ -1,25 +1,42 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
+
+const ALLOWED_TYPES = "image/jpeg,image/png,image/webp";
+const MAX_SIZE_MB = 5;
+
+interface TrackImage {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+}
 
 interface Track {
   id: string;
   name: string;
   lengthMeters: number;
   location: string | null;
+  layoutImageUrl: string | null;
+  trackImages?: TrackImage[];
 }
 
 export default function EditTrackPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const layoutInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLayout, setUploadingLayout] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const [error, setError] = useState("");
+  const [layoutImageUrl, setLayoutImageUrl] = useState<string | null>(null);
+  const [trackImages, setTrackImages] = useState<TrackImage[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     lengthMeters: "",
@@ -43,12 +60,97 @@ export default function EditTrackPage() {
         lengthMeters: track.lengthMeters.toString(),
         location: track.location || "",
       });
+      setLayoutImageUrl(track.layoutImageUrl ?? null);
+      setTrackImages(track.trackImages ?? []);
     } catch (err) {
       const errorMessage = "Failed to load track";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLayoutUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast.error("Use JPG, PNG, or WebP only.");
+      return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File must be under ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    setUploadingLayout(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`/api/admin/tracks/${id}/layout`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Upload failed");
+        return;
+      }
+      setLayoutImageUrl(data.url);
+      toast.success("Layout image uploaded");
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploadingLayout(false);
+      if (layoutInputRef.current) layoutInputRef.current.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast.error("Use JPG, PNG, or WebP only.");
+      return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File must be under ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    setUploadingGallery(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`/api/admin/tracks/${id}/images`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Upload failed");
+        return;
+      }
+      setTrackImages((prev) => [...prev, { id: data.id, imageUrl: data.imageUrl, createdAt: data.createdAt }]);
+      toast.success("Image added to gallery");
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploadingGallery(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteGalleryImage = async (imageId: string) => {
+    try {
+      const res = await fetch(`/api/admin/tracks/images/${imageId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Delete failed");
+        return;
+      }
+      setTrackImages((prev) => prev.filter((img) => img.id !== imageId));
+      toast.success("Image removed");
+    } catch {
+      toast.error("Delete failed");
     }
   };
 
@@ -195,6 +297,74 @@ export default function EditTrackPage() {
                 onBlur={(e) => (e.currentTarget.style.boxShadow = "")}
                 placeholder="Optional"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Track layout image (optional)
+              </label>
+              {layoutImageUrl && (
+                <div className="mb-3">
+                  <img
+                    src={layoutImageUrl}
+                    alt="Layout"
+                    className="max-h-48 rounded-lg border border-gray-200 object-contain"
+                  />
+                </div>
+              )}
+              <input
+                ref={layoutInputRef}
+                type="file"
+                accept={ALLOWED_TYPES}
+                onChange={handleLayoutUpload}
+                disabled={uploadingLayout}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer disabled:opacity-50"
+                style={{
+                  // @ts-expect-error CSS custom property
+                  "--tw-file-color": theme.colors.primary.red,
+                }}
+              />
+              <p className="mt-1 text-xs text-gray-500">JPG, PNG or WebP, max {MAX_SIZE_MB}MB</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gallery images (optional)
+              </label>
+              {trackImages.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                  {trackImages.map((img) => (
+                    <div key={img.id} className="relative group">
+                      <img
+                        src={img.imageUrl}
+                        alt="Gallery"
+                        className="w-full aspect-square object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteGalleryImage(img.id)}
+                        className="absolute top-1 right-1 px-2 py-1 text-xs font-medium text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ backgroundColor: theme.colors.primary.red }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept={ALLOWED_TYPES}
+                onChange={handleGalleryUpload}
+                disabled={uploadingGallery}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white file:cursor-pointer disabled:opacity-50"
+                style={{
+                  // @ts-expect-error CSS custom property
+                  "--tw-file-color": theme.colors.primary.red,
+                }}
+              />
+              <p className="mt-1 text-xs text-gray-500">JPG, PNG or WebP, max {MAX_SIZE_MB}MB. Add more over time.</p>
             </div>
 
             {error && (

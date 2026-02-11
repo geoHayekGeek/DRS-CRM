@@ -13,14 +13,22 @@ interface Round {
   createdAt: string;
 }
 
+interface TrackImage {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
 interface Track {
   id: string;
   name: string;
   lengthMeters: number;
   location: string | null;
+  layoutImageUrl: string | null;
   createdAt: string;
   updatedAt: string;
   rounds: Round[];
+  trackImages?: TrackImage[];
 }
 
 export default function TrackDetailPage() {
@@ -31,6 +39,7 @@ export default function TrackDetailPage() {
   const [track, setTrack] = useState<Track | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTrack();
@@ -113,6 +122,19 @@ export default function TrackDetailPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+          {track.layoutImageUrl && (
+            <div>
+              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Track Layout</h2>
+              <div className="rounded-lg overflow-hidden border border-gray-200">
+                <img
+                  src={track.layoutImageUrl}
+                  alt="Track layout"
+                  className="w-full max-h-80 object-contain bg-gray-50"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Track Information</h2>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -124,12 +146,12 @@ export default function TrackDetailPage() {
                 <dt className="text-sm font-medium text-gray-500">Length</dt>
                 <dd className="mt-1 text-sm text-gray-900">{track.lengthMeters} meters</dd>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Location</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {track.location || "Not specified"}
-                </dd>
-              </div>
+              {track.location != null && track.location !== "" && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Location</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{track.location}</dd>
+                </div>
+              )}
               <div>
                 <dt className="text-sm font-medium text-gray-500">Created</dt>
                 <dd className="mt-1 text-sm text-gray-900">{formatDate(track.createdAt)}</dd>
@@ -140,6 +162,58 @@ export default function TrackDetailPage() {
               </div>
             </dl>
           </div>
+
+          {(track.trackImages?.length ?? 0) > 0 && (
+            <div>
+              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Photo Gallery</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {track.trackImages?.map((img) => (
+                  <div key={img.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setLightboxUrl(img.imageUrl)}
+                      className="block w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:ring-2 focus:ring-2 focus:outline-none"
+                      style={{ ringColor: theme.colors.primary.red }}
+                    >
+                      <img
+                        src={img.imageUrl}
+                        alt="Gallery"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/admin/tracks/images/${img.id}`, { method: "DELETE" });
+                          if (!res.ok) {
+                            const data = await res.json();
+                            toast.error(data.error || "Delete failed");
+                            return;
+                          }
+                          setTrack((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  trackImages: prev.trackImages?.filter((i) => i.id !== img.id) ?? [],
+                                }
+                              : null
+                          );
+                          toast.success("Image removed");
+                        } catch {
+                          toast.error("Delete failed");
+                        }
+                      }}
+                      className="absolute top-2 right-2 px-2 py-1 text-xs font-medium text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ backgroundColor: theme.colors.primary.red }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Rounds</h2>
@@ -198,6 +272,30 @@ export default function TrackDetailPage() {
           </button>
         </div>
       </div>
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="View image"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 px-3 py-1 text-sm font-medium text-white rounded bg-gray-700 hover:bg-gray-600"
+          >
+            Close
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Enlarged"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
