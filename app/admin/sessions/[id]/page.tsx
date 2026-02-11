@@ -219,8 +219,8 @@ export default function SessionResultsPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div className="text-gray-300">Loading session...</div>
         </div>
       </div>
@@ -229,8 +229,8 @@ export default function SessionResultsPage() {
 
   if (error && !sessionData) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div
             className="bg-red-50 border-l-4 p-4 rounded-r-lg mb-4"
             style={{ borderLeftColor: theme.colors.primary.red }}
@@ -258,23 +258,48 @@ export default function SessionResultsPage() {
     sessionData.session.type === "RACE" ||
     sessionData.session.type === "FINAL_RACE";
 
+  const hasResults = sessionData.drivers.some((d) => d.result != null);
+
+  const handleExport = async (format: "pdf" | "xlsx") => {
+    try {
+      const res = await fetch(`/api/admin/exports/sessions/${id}?format=${format}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error || "Export failed");
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="?([^";\n]+)"?/);
+      const filename = match?.[1] ?? `session-export.${format}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Export failed");
+    }
+  };
+
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+      <div className="w-full max-w-4xl mx-auto">
         <div className="mb-6">
           <button
             onClick={() => router.push(`/admin/rounds/${sessionData.round.id}`)}
-            className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block"
+            className="min-h-[44px] px-3 py-2 text-sm text-white hover:text-gray-200 mb-4 inline-flex items-center"
           >
             ← Back to Round
           </button>
           <h1
-            className="text-3xl font-heading font-semibold"
+            className="text-2xl sm:text-3xl font-heading font-semibold break-words"
             style={{ color: theme.colors.primary.red }}
           >
             {getSessionName()}
           </h1>
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-sm text-white">
             <p>
               <span className="font-medium">Championship:</span>{" "}
               {sessionData.round.championship.name}
@@ -291,7 +316,7 @@ export default function SessionResultsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {isRaceSession && (
               <div>
@@ -303,7 +328,7 @@ export default function SessionResultsPage() {
                   required
                   value={pointsMultiplier}
                   onChange={(e) => setPointsMultiplier(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
+                  className="block w-full min-h-[44px] px-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                   style={{
                     "--tw-ring-color": theme.colors.primary.red,
                   } as React.CSSProperties & { "--tw-ring-color": string }}
@@ -318,21 +343,39 @@ export default function SessionResultsPage() {
             )}
 
             <div>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
                 <h2 className="text-lg font-heading font-semibold text-gray-900">
                   Results
                 </h2>
-                <button
-                  type="button"
-                  onClick={handleAutoFill}
-                  className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50"
-                >
-                  Auto-fill Positions
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAutoFill}
+                    className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50"
+                  >
+                    Auto-fill Positions
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExport("pdf")}
+                    disabled={!hasResults}
+                    className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Export PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExport("xlsx")}
+                    disabled={!hasResults}
+                    className="text-sm px-3 py-1 border border-gray-300 text-gray-700 font-medium rounded transition-all duration-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Export Excel
+                  </button>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[500px]">
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -406,11 +449,11 @@ export default function SessionResultsPage() {
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto min-h-[44px] px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 style={{ backgroundColor: theme.colors.primary.red }}
                 onMouseEnter={(e) => !saving && (e.currentTarget.style.backgroundColor = "#A01516")}
                 onMouseLeave={(e) => !saving && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
@@ -421,7 +464,7 @@ export default function SessionResultsPage() {
                 type="button"
                 onClick={() => router.push(`/admin/rounds/${sessionData.round.id}`)}
                 disabled={saving}
-                className="px-6 py-2 border border-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="w-full sm:w-auto min-h-[44px] px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 flex items-center justify-center"
               >
                 Cancel
               </button>

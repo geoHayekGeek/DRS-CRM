@@ -9,6 +9,7 @@ export async function GET() {
 
     return NextResponse.json(tracks);
   } catch (error) {
+    console.error("[GET /api/admin/tracks]", error);
     return NextResponse.json(
       { error: "Failed to fetch tracks" },
       { status: 500 }
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(track, { status: 201 });
   } catch (error) {
+    console.error("[POST /api/admin/tracks]", error);
     return NextResponse.json(
       { error: "Failed to create track" },
       { status: 500 }

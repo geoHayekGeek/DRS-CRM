@@ -69,8 +69,8 @@ export default function TrackDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div className="text-gray-300">Loading track details...</div>
         </div>
       </div>
@@ -79,8 +79,8 @@ export default function TrackDetailPage() {
 
   if (error || !track) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div
             className="bg-red-50 border-l-4 p-4 rounded-r-lg mb-4"
             style={{ borderLeftColor: theme.colors.primary.red }}
@@ -101,18 +101,18 @@ export default function TrackDetailPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-start mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
           <h1
-            className="text-3xl font-heading font-semibold"
+            className="text-2xl sm:text-3xl font-heading font-semibold break-words"
             style={{ color: theme.colors.primary.red }}
           >
             {track.name}
           </h1>
           <button
             onClick={() => router.push(`/admin/tracks/${id}/edit`)}
-            className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200"
+            className="w-full sm:w-auto min-h-[44px] px-4 py-3 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center shrink-0"
             style={{ backgroundColor: theme.colors.primary.red }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#A01516")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
@@ -135,6 +135,7 @@ export default function TrackDetailPage() {
             </div>
           )}
 
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-6">
           <div>
             <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Track Information</h2>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -220,8 +221,8 @@ export default function TrackDetailPage() {
             {track.rounds.length === 0 ? (
               <p className="text-sm text-gray-500">No rounds have been created for this track yet.</p>
             ) : (
-              <div className="mt-4 overflow-hidden">
-                <table className="w-full">
+              <div className="mt-4 overflow-x-auto overflow-hidden">
+                <table className="w-full min-w-[500px]">
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">

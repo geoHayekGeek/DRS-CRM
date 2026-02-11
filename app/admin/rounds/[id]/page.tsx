@@ -15,6 +15,7 @@ interface Championship {
   id: string;
   name: string;
   isCurrent: boolean;
+  _count?: { championshipDrivers: number };
 }
 
 interface Round {
@@ -170,10 +171,37 @@ export default function RoundDetailPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const roundHasResults = sessions.some((s) => s.hasResults);
+  const assignedDriverCount = round?.championship?._count?.championshipDrivers ?? 0;
+  const canSetup = !round?.setupCompleted && assignedDriverCount > 0;
+
+  const handleExport = async (format: "pdf" | "xlsx") => {
+    try {
+      const res = await fetch(`/api/admin/exports/rounds/${id}?format=${format}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error || "Export failed");
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="?([^";\n]+)"?/);
+      const filename = match?.[1] ?? `round-export.${format}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Export failed");
+    }
+  };
+
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div className="text-gray-300">Loading round details...</div>
         </div>
       </div>
@@ -182,8 +210,8 @@ export default function RoundDetailPage() {
 
   if (error || !round) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+        <div className="w-full max-w-4xl mx-auto">
           <div
             className="bg-red-50 border-l-4 p-4 rounded-r-lg mb-4"
             style={{ borderLeftColor: theme.colors.primary.red }}
@@ -204,28 +232,49 @@ export default function RoundDetailPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-start mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
           <h1
-            className="text-3xl font-heading font-semibold"
+            className="text-2xl sm:text-3xl font-heading font-semibold break-words"
             style={{ color: theme.colors.primary.red }}
           >
             {round.name}
           </h1>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 shrink-0">
             {!round.setupCompleted && (
-              <button
-                onClick={handleSetup}
-                disabled={setupLoading}
-                className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: theme.colors.primary.red }}
-                onMouseEnter={(e) => !setupLoading && (e.currentTarget.style.backgroundColor = "#A01516")}
-                onMouseLeave={(e) => !setupLoading && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
-              >
-                {setupLoading ? "Setting up..." : "Setup Round"}
-              </button>
+              <>
+                {round.championship && assignedDriverCount === 0 && (
+                  <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    No drivers assigned to this championship. Assign drivers on the championship page to enable round setup.
+                  </p>
+                )}
+                <button
+                  onClick={handleSetup}
+                  disabled={setupLoading || !canSetup}
+                  className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: theme.colors.primary.red }}
+                  onMouseEnter={(e) => !setupLoading && canSetup && (e.currentTarget.style.backgroundColor = "#A01516")}
+                  onMouseLeave={(e) => !setupLoading && canSetup && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+                >
+                  {setupLoading ? "Setting up..." : "Setup Round"}
+                </button>
+              </>
             )}
+            <button
+              onClick={() => handleExport("pdf")}
+              disabled={!roundHasResults}
+              className="px-4 py-2 border border-gray-300 text-white font-semibold rounded-lg transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Export full round PDF
+            </button>
+            <button
+              onClick={() => handleExport("xlsx")}
+              disabled={!roundHasResults}
+              className="px-4 py-2 border border-gray-300 text-white font-semibold rounded-lg transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Export full round Excel
+            </button>
             <button
               onClick={() => router.push(`/admin/rounds/${id}/edit`)}
               className="px-4 py-2 text-white font-semibold rounded-lg transition-all duration-200"
@@ -294,7 +343,7 @@ export default function RoundDetailPage() {
           {assignments.length > 0 && (
             <div>
               <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Group Assignments</h2>
-              <div className="mt-4 overflow-hidden">
+              <div className="mt-4 overflow-x-auto overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
@@ -334,7 +383,7 @@ export default function RoundDetailPage() {
             {sessions.length === 0 ? (
               <p className="text-sm text-gray-500">No sessions have been created for this round yet. Click "Setup Round" to generate sessions and assignments.</p>
             ) : (
-              <div className="mt-4 overflow-hidden">
+              <div className="mt-4 overflow-x-auto overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
