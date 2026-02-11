@@ -12,6 +12,9 @@ export async function GET(
         rounds: {
           orderBy: { date: "desc" },
         },
+        trackImages: {
+          orderBy: { createdAt: "asc" },
+        },
       },
     });
 
