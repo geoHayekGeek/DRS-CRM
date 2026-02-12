@@ -12,6 +12,7 @@
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
+    "resolve:migrations": "node scripts/resolve-all-migrations.js",
     "db:seed": "tsx prisma/seed.ts",
     "prisma:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
