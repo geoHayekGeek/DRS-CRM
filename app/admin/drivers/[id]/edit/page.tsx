@@ -222,7 +222,6 @@ export default function EditDriverPage() {
                       style={{
                         // @ts-expect-error CSS custom property
                         "--tw-file-color": theme.colors.primary.red,
-                        // @ts-expect-error CSS custom property
                         "--tw-file-text-shadow": "0 1px 3px rgba(0, 0, 0, 0.5)",
                       }}
                     />
