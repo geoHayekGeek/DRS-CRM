@@ -1,8 +1,8 @@
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import { headers } from "next/headers";
+import Link from "next/link";
+import Image from "next/image";
 
-export type SpotlightDriver = {
+type PublicDriver = {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
@@ -10,36 +10,36 @@ export type SpotlightDriver = {
   height: number | null;
 };
 
-type Props = {
-  drivers: SpotlightDriver[];
-};
+async function getDrivers(): Promise<PublicDriver[]> {
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") ?? "http";
+  const base = `${protocol}://${host}`;
+  const res = await fetch(`${base}/api/public/drivers`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
 
-const DriversSpotlight = ({ drivers }: Props) => {
-  if (drivers.length === 0) {
-    return null;
-  }
+export default async function DriversGridPage() {
+  const drivers = await getDrivers();
 
   return (
-    <section className="py-24 ">
+    <div className="min-h-screen py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-10">
+          Driver Grid
+        </h1>
 
-        <div className="flex justify-between items-end mb-12 border-b border-gray-100 pb-6">
-          <div>
-            <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Featured Drivers</h2>
-          </div>
-          <Link
-            href="/drivers"
-            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-900 hover:text-red-600 transition group"
-          >
-            View All Drivers
-            <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {drivers.map((driver) => (
-            <Link key={driver.id} href={`/drivers/${driver.id}`} className="group block h-full">
-              <div className="relative h-full flex flex-col bg-gray-50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-gray-200 border-b-4 border-red-500">
+            <Link
+              key={driver.id}
+              href={`/drivers/${driver.id}`}
+              className="group block h-full"
+            >
+              <div className="relative h-full flex flex-col bg-gray-50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-200 border-b-4 border-red-500">
                 <div className="h-48 w-full bg-red-600 relative overflow-hidden flex items-end justify-center">
                   {driver.profileImageUrl ? (
                     <div className="relative w-full h-full">
@@ -57,7 +57,7 @@ const DriversSpotlight = ({ drivers }: Props) => {
                 </div>
 
                 <div className="p-6 flex flex-col flex-grow bg-white">
-                  <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-red-600 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
                     {driver.fullName}
                   </h3>
 
@@ -98,15 +98,12 @@ const DriversSpotlight = ({ drivers }: Props) => {
           ))}
         </div>
 
-        <div className="mt-8 md:hidden">
-          <Link href="/drivers" className="block w-full py-4 bg-black text-white text-center rounded-xl font-bold hover:bg-gray-800 transition">
-            View All Drivers
-          </Link>
-        </div>
-
+        {drivers.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No drivers found.</p>
+          </div>
+        )}
       </div>
-    </section>
+    </div>
   );
-};
-
-export default DriversSpotlight;
+}

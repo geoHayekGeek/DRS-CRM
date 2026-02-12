@@ -15,8 +15,8 @@ const Navbar = () => {
         <div className="h-16 relative flex items-center justify-between md:grid md:grid-cols-3">
           
           <div className="hidden md:flex justify-start space-x-8">
-            <NavItem href="/landing/drivers">Drivers</NavItem>
-            <NavItem href="/landing/championship">Championship</NavItem>
+            <NavItem href="/drivers">Drivers</NavItem>
+            <NavItem href="/championships">Championship</NavItem>
           </div>
 
           <div className="flex justify-start md:justify-center items-center">
@@ -33,7 +33,6 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex justify-end space-x-8 items-center">
-            <NavItem href="/landing/race">Race</NavItem>
             <NavItem href="/landing/about">About</NavItem>
           </div>
 
@@ -68,10 +67,8 @@ const Navbar = () => {
         ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}
       >
         <div className="bg-white/90 backdrop-blur-xl border-b border-gray-200 shadow-2xl p-6 flex flex-col items-center space-y-4">
-          <MobileNavItem href="/landing/drivers" delay="100ms">Drivers</MobileNavItem>
-          <MobileNavItem href="/landing/championship" delay="200ms">Championship</MobileNavItem>
-          {/* <div className="w-12 h-0.5 bg-gray-200 rounded-full my-2"></div>           */}
-          <MobileNavItem href="/landing/race" delay="200ms">Race</MobileNavItem>
+          <MobileNavItem href="/drivers" delay="100ms">Drivers</MobileNavItem>
+          <MobileNavItem href="/championships" delay="200ms">Championship</MobileNavItem>
           <MobileNavItem href="/landing/about" delay="200ms">About</MobileNavItem>
           <button className="w-full max-w-xs px-6 py-3 mt-4 text-sm font-bold tracking-wider uppercase text-white bg-black rounded-lg shadow-lg hover:shadow-gray-400/50 hover:scale-[1.02] transition-all duration-300">
             Get Started
