@@ -23,7 +23,7 @@ const Footer = () => {
 
           <nav className="flex flex-wrap justify-center gap-8">
             <FooterLink href="/landing/drivers">Drivers</FooterLink>
-            <FooterLink href="/landing/rounds">Rounds</FooterLink>
+            <FooterLink href="/landing/championship">Championship</FooterLink>
             <FooterLink href="/landing/race">Race</FooterLink>
             <FooterLink href="/landing/about">About</FooterLink>
           </nav>
