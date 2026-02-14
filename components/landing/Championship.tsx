@@ -40,7 +40,7 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
   return (
     <section className="py-20 border-t border-gray-200" id="championship">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="mb-12 flex flex-col items-center text-center gap-4">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Featured Championship</h2>
             <p className="mt-2 text-red-600">{displayName}</p>
@@ -56,10 +56,10 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
-          <div className="lg:col-span-7">
+        <div className="flex justify-center">
+          <div className="w-full max-w-4xl">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-center items-center bg-gray-50/50">
                 <h3 className="font-semibold text-gray-900">Driver Standings</h3>
               </div>
               <div className="overflow-x-auto">
@@ -67,19 +67,19 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
                   <table className="w-full text-left text-sm text-gray-900">
                     <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-700">
                       <tr>
-                        <th className="px-6 py-3">Pos</th>
-                        <th className="px-6 py-3">Driver</th>
-                        <th className="px-6 py-3 text-right">Pts</th>
+                        <th className="px-6 py-3 text-center">Pos</th>
+                        <th className="px-6 py-3 text-center">Driver</th>
+                        <th className="px-6 py-3 text-center">Pts</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {standings.map((row, index) => (
                         <tr key={index} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 font-medium text-gray-900">
+                          <td className="px-6 py-4 font-medium text-gray-900 text-center">
                             {index + 1}
                           </td>
-                          <td className="px-6 py-4 font-medium text-gray-900">{row.fullName}</td>
-                          <td className="px-6 py-4 text-right font-bold text-black">{row.totalPoints}</td>
+                          <td className="px-6 py-4 font-medium text-gray-900 text-center">{row.fullName}</td>
+                          <td className="px-6 py-4 font-bold text-black text-center">{row.totalPoints}</td>
                         </tr>
                       ))}
                     </tbody>
