@@ -12,14 +12,10 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-200/50 supports-[backdrop-filter]:bg-white/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-16 relative flex items-center justify-between md:grid md:grid-cols-3">
+        <div className="h-16 flex items-center justify-between">
           
-          <div className="hidden md:flex justify-start space-x-8">
-            <NavItem href="/drivers">Drivers</NavItem>
-            <NavItem href="/championships">Championship</NavItem>
-          </div>
-
-          <div className="flex justify-start md:justify-center items-center">
+          {/* Logo Section - Aligned Left */}
+          <div className="flex-shrink-0 flex items-center">
             <a href="/landing" className="flex items-center group">
               <Image 
                 src="/DRS-black.png" 
@@ -32,11 +28,15 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="hidden md:flex justify-end space-x-8 items-center">
+          <div className="hidden md:flex items-center space-x-8">
+            <NavItem href="/landing">Home</NavItem>
+            <NavItem href="/drivers">Drivers</NavItem>
+            <NavItem href="/championships">Championship</NavItem>
             <NavItem href="/landing/about">About</NavItem>
+            <NavItem href="/landing/contact">Contact</NavItem>
           </div>
 
-          <div className="flex md:hidden justify-end">
+          <div className="flex md:hidden">
             <button
               onClick={toggleMenu}
               type="button"
@@ -47,12 +47,10 @@ const Navbar = () => {
                 className={`h-0.5 w-6 bg-gray-800 rounded-full transition-all duration-300 ease-out 
                 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : '-translate-y-1'}`} 
               />
-              
               <span 
                 className={`h-0.5 bg-gray-800 rounded-full transition-all duration-300 ease-out my-0.5
                 ${isMobileMenuOpen ? 'w-0 opacity-0' : 'w-6 opacity-100'}`} 
               />
-              
               <span 
                 className={`h-0.5 w-6 bg-gray-800 rounded-full transition-all duration-300 ease-out 
                 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : 'translate-y-1'}`} 
@@ -66,13 +64,12 @@ const Navbar = () => {
         className={`md:hidden absolute top-16 left-0 w-full overflow-hidden transition-all duration-300 ease-in-out origin-top
         ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="bg-white/90 backdrop-blur-xl border-b border-gray-200 shadow-2xl p-6 flex flex-col items-center space-y-4">
+        <div className="bg-white/90 backdrop-blur-xl border-b border-gray-200 shadow-2xl p-6 flex flex-col items-center space-y-6">
+          <MobileNavItem href="/landing" delay="0ms">Home</MobileNavItem>
           <MobileNavItem href="/drivers" delay="100ms">Drivers</MobileNavItem>
           <MobileNavItem href="/championships" delay="200ms">Championship</MobileNavItem>
-          <MobileNavItem href="/landing/about" delay="200ms">About</MobileNavItem>
-          <button className="w-full max-w-xs px-6 py-3 mt-4 text-sm font-bold tracking-wider uppercase text-white bg-black rounded-lg shadow-lg hover:shadow-gray-400/50 hover:scale-[1.02] transition-all duration-300">
-            Get Started
-          </button>
+          <MobileNavItem href="/landing/about" delay="300ms">About</MobileNavItem>
+          <MobileNavItem href="/landing/contact" delay="400ms">Contact</MobileNavItem>
         </div>
       </div>
     </nav>

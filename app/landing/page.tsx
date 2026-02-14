@@ -1,6 +1,7 @@
 import Championship from '@/components/landing/Championship';
 import DriversSpotlight from '@/components/landing/DriversSpotlight';
 import Hero from '@/components/landing/Hero';
+import NewDrivers from '@/components/landing/NewDrivers';
 import { headers } from 'next/headers';
 
 async function getSpotlightDrivers() {
@@ -40,8 +41,8 @@ export default async function LandingPage() {
           <Hero />
         </section>
 
-        <section id="driversspotlight">
-          <DriversSpotlight drivers={spotlightDrivers} />
+        <section id="newdrivers">
+          <NewDrivers drivers={[]}  />
         </section>
 
         <section id="championship">
@@ -50,6 +51,10 @@ export default async function LandingPage() {
             hasStandings={featured.hasStandings}
             standings={featured.standings}
           />
+        </section>
+
+        <section id="driversspotlight">
+          <DriversSpotlight drivers={spotlightDrivers} />
         </section>
       </main>
     </div>
