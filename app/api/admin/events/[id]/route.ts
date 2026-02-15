@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { unlink, rm } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
+import { getUploadsDir, resolveUploadPath, uploadUrlToRelative } from "@/lib/uploads";
 
 export async function GET(
   _request: NextRequest,
@@ -161,15 +162,15 @@ export async function DELETE(
     }
 
     for (const img of existing.eventImages) {
-      const filePath = path.join(process.cwd(), "public", img.imagePath);
       try {
+        const filePath = resolveUploadPath(uploadUrlToRelative(img.imagePath));
         await unlink(filePath);
       } catch {
         // File may already be missing
       }
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "events", params.id);
+    const uploadDir = path.join(getUploadsDir(), "events", params.id);
     try {
       await rm(uploadDir, { recursive: true });
     } catch {

@@ -4,6 +4,11 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["pdfkit"],
   },
+  async rewrites() {
+    return [
+      { source: "/uploads/:path*", destination: "/api/serve-upload/:path*" },
+    ];
+  },
   async redirects() {
     return [
       { source: "/landing/championship", destination: "/championships", permanent: false },

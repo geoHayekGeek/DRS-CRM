@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unlink } from "fs/promises";
-import path from "path";
 import { db } from "@/lib/db";
+import { resolveUploadPath, uploadUrlToRelative } from "@/lib/uploads";
 
 export async function DELETE(
   request: NextRequest,
@@ -20,7 +20,7 @@ export async function DELETE(
       );
     }
 
-    const filePath = path.join(process.cwd(), "public", trackImage.imageUrl);
+    const filePath = resolveUploadPath(uploadUrlToRelative(trackImage.imageUrl));
     try {
       await unlink(filePath);
     } catch {

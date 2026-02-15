@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
+import { getUploadsDir } from "@/lib/uploads";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -51,14 +52,7 @@ export async function POST(
 
     const ext = MIME_TO_EXT[mime] || ".jpg";
     const filename = `${crypto.randomUUID()}${ext}`;
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "events",
-      eventId,
-      "gallery"
-    );
+    const uploadDir = path.join(getUploadsDir(), "events", eventId, "gallery");
     await mkdir(uploadDir, { recursive: true });
 
     const bytes = await file.arrayBuffer();
