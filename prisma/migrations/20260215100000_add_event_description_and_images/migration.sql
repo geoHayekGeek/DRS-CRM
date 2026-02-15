@@ -1,3 +1,16 @@
+-- Create events table if it doesn't exist (for DBs where init ran before events was added)
+CREATE TABLE IF NOT EXISTS "events" (
+    "id" TEXT NOT NULL,
+    "title" VARCHAR(120) NOT NULL,
+    "starts_at" TIMESTAMP(3) NOT NULL,
+    "ends_at" TIMESTAMP(3),
+    "location" VARCHAR(120),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "events_pkey" PRIMARY KEY ("id")
+);
+
 -- AlterTable
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "description" TEXT;
 
