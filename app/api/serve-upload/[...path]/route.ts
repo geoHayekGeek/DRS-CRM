@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createReadStream, stat } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import path from "path";
 import { resolveUploadPath } from "@/lib/uploads";
 
@@ -27,8 +27,8 @@ export async function GET(
     }
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME[ext] || "application/octet-stream";
-    const stream = createReadStream(filePath);
-    return new NextResponse(stream, {
+    const buffer = await readFile(filePath);
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=31536000, immutable",
