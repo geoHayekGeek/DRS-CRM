@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../lib/password";
 
 const prisma = new PrismaClient();
+const Role = { SUPER_ADMIN: "SUPER_ADMIN", ADMIN: "ADMIN" } as const;
 
 const SEED_DRIVERS = [
   { fullName: "Alex Rivera" },
@@ -24,6 +25,22 @@ async function main() {
   const email = process.env.SEED_ADMIN_EMAIL || "admin@drs.com";
   const password = process.env.SEED_ADMIN_PASSWORD || "admin123";
 
+  const superAdminCount = await prisma.adminUser.count({
+    where: { role: "SUPER_ADMIN" },
+  });
+  if (superAdminCount === 0) {
+    const oldest = await prisma.adminUser.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+    if (oldest) {
+      await prisma.adminUser.update({
+        where: { id: oldest.id },
+        data: { role: "SUPER_ADMIN" },
+      });
+      console.log(`Set ${oldest.email} as SUPER_ADMIN`);
+    }
+  }
+
   const existingAdmin = await prisma.adminUser.findUnique({
     where: { email },
   });
@@ -31,9 +48,13 @@ async function main() {
   if (!existingAdmin) {
     const passwordHash = await hashPassword(password);
     const admin = await prisma.adminUser.create({
-      data: { email, passwordHash },
+      data: {
+        email,
+        passwordHash,
+        role: superAdminCount === 0 ? "SUPER_ADMIN" : "ADMIN",
+      },
     });
-    console.log(`Created admin user: ${admin.email}`);
+    console.log(`Created admin user: ${admin.email} (${admin.role})`);
     console.log(`Default password: ${password}`);
     console.log("Please change the password after first login.");
   } else {

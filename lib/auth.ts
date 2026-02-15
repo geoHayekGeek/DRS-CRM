@@ -51,6 +51,7 @@ export async function authenticateAdmin(
     {
       sub: admin.id,
       email: admin.email,
+      role: admin.role,
     },
     JWT_SECRET,
     {
@@ -65,9 +66,12 @@ export async function authenticateAdmin(
   };
 }
 
+export type Role = "SUPER_ADMIN" | "ADMIN";
+
 export interface TokenPayload {
   sub: string;
   email: string;
+  role?: Role;
 }
 
 // For Node.js runtime (API routes)
@@ -106,6 +110,7 @@ export async function verifyTokenForEdge(token: string): Promise<TokenPayload | 
     return {
       sub: payload.sub as string,
       email: payload.email as string,
+      role: (payload.role as Role) ?? "ADMIN",
     };
   } catch (error) {
     // Log the error for debugging (remove in production)

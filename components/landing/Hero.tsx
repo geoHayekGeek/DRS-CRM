@@ -1,6 +1,20 @@
 import React from 'react';
+import EventsCard from './EventsCard';
 
-const Hero = () => {
+type FeaturedEvent = {
+  id: string;
+  title: string;
+  startsAt: string;
+  endsAt: string | null;
+  location: string | null;
+  status: "ONGOING" | "UPCOMING";
+};
+
+type Props = {
+  events: FeaturedEvent[];
+};
+
+const Hero = ({ events }: Props) => {
   return (
     <section className="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden ">
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-red-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
@@ -51,61 +65,8 @@ const Hero = () => {
           </div>
 
           <div className="relative mx-auto lg:ml-auto w-full max-w-lg lg:max-w-none">
-            
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-red-200 to-orange-100 rounded-full blur-3xl opacity-40 animate-pulse"></div>
-
-            <div className="relative rounded-2xl bg-white border border-gray-200 shadow-2xl overflow-hidden p-6 transform rotate-[-2deg] hover:rotate-0 transition duration-500 ease-out">
-              
-              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                <div className="flex items-center gap-3">
-                   <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                   <span className="font-bold text-gray-900 tracking-tight">MONZA GP</span>
-                </div>
-                <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">LAP 45/53</span>
-              </div>
-              
-              <div className="space-y-3 mb-6 font-mono text-sm">
-                <div className="flex items-center justify-between p-3 bg-blue-50 border-l-4 border-blue-600 rounded-r-lg">
-                   <div className="flex items-center gap-3">
-                      <span className="font-bold text-gray-900">1. VER</span>
-                      <span className="text-xs text-gray-500">Red Bull</span>
-                   </div>
-                   <span className="font-bold text-green-600">-1.204s</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-white border border-gray-100 border-l-4 border-l-gray-800 rounded-r-lg shadow-sm">
-                   <div className="flex items-center gap-3">
-                      <span className="font-bold text-gray-900">2. NOR</span>
-                      <span className="text-xs text-gray-500">McLaren</span>
-                   </div>
-                   <span className="font-bold text-orange-500">+0.432s</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-white border border-gray-100 border-l-4 border-l-red-600 rounded-r-lg">
-                   <div className="flex items-center gap-3">
-                      <span className="font-bold text-gray-900">3. LEC</span>
-                      <span className="text-xs text-gray-500">Ferrari</span>
-                   </div>
-                   <span className="font-bold text-gray-400">+4.100s</span>
-                </div>
-              </div>
-
-              <div className="bg-gray-900 rounded-xl p-4 text-white">
-                <div className="flex items-center gap-2 mb-2">
-                   <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                   <span className="text-xs font-bold uppercase text-gray-400">Live Chat</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex gap-2 items-center">
-                     <div className="w-5 h-5 rounded-full bg-blue-500"></div>
-                     <div className="h-2 w-32 bg-gray-700 rounded"></div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                     <div className="w-5 h-5 rounded-full bg-green-500"></div>
-                     <div className="h-2 w-48 bg-gray-700 rounded"></div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            <EventsCard events={events} />
           </div>
 
         </div>

@@ -23,5 +23,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     id: payload.sub,
     email: payload.email,
+    role: payload.role ?? "ADMIN",
   });
 }

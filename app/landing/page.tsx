@@ -33,6 +33,23 @@ async function getNewestDrivers() {
   }
 }
 
+async function getFeaturedEvents() {
+  try {
+    const headersList = await headers();
+    const host = headersList.get("host") ?? "localhost:3000";
+    const protocol = headersList.get("x-forwarded-proto") ?? "http";
+    const base = `${protocol}://${host}`;
+    const res = await fetch(`${base}/api/public/events/featured`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return { now: new Date().toISOString(), events: [] };
+    const data = await res.json();
+    return { now: data.now ?? new Date().toISOString(), events: Array.isArray(data.events) ? data.events : [] };
+  } catch {
+    return { now: new Date().toISOString(), events: [] };
+  }
+}
+
 async function getFeaturedChampionship() {
   const headersList = await headers();
   const host = headersList.get('host') ?? 'localhost:3000';
@@ -46,17 +63,18 @@ async function getFeaturedChampionship() {
 }
 
 export default async function LandingPage() {
-  const [spotlightDrivers, featured, newestDrivers] = await Promise.all([
+  const [spotlightDrivers, featured, newestDrivers, featuredEvents] = await Promise.all([
     getSpotlightDrivers(),
     getFeaturedChampionship(),
     getNewestDrivers(),
+    getFeaturedEvents(),
   ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <main className="flex-grow">
         <section id="hero">
-          <Hero />
+          <Hero events={featuredEvents.events} />
         </section>
 
         <section id="newdrivers">

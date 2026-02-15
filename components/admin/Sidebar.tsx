@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ChevronLeft, X } from "lucide-react";
@@ -17,6 +17,14 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, onToggle, mobileOpen = false, onMobileClose }: SidebarProps) {
   const router = useRouter();
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setRole(data.role ?? "ADMIN"))
+      .catch(() => {});
+  }, []);
 
   const handleLogout = async () => {
     setLogoutLoading(true);
@@ -91,9 +99,17 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen = false, onMob
         <SidebarLink href="/admin/rounds" collapsed={collapsed} onNavigate={onNavigate}>
           Rounds
         </SidebarLink>
+        <SidebarLink href="/admin/events" collapsed={collapsed} onNavigate={onNavigate}>
+          Events
+        </SidebarLink>
         <SidebarLink href="/admin/standings" collapsed={collapsed} onNavigate={onNavigate}>
           Standings
         </SidebarLink>
+        {role === "SUPER_ADMIN" && (
+          <SidebarLink href="/admin/users" collapsed={collapsed} onNavigate={onNavigate}>
+            Users
+          </SidebarLink>
+        )}
       </nav>
 
       <div className="p-4 border-t border-gray-700 flex-shrink-0">
