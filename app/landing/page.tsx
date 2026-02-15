@@ -16,6 +16,23 @@ async function getSpotlightDrivers() {
   return res.json();
 }
 
+async function getNewestDrivers() {
+  try {
+    const headersList = await headers();
+    const host = headersList.get('host') ?? 'localhost:3000';
+    const protocol = headersList.get('x-forwarded-proto') ?? 'http';
+    const base = `${protocol}://${host}`;
+    const res = await fetch(`${base}/api/public/drivers/newest`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
 async function getFeaturedChampionship() {
   const headersList = await headers();
   const host = headersList.get('host') ?? 'localhost:3000';
@@ -29,9 +46,10 @@ async function getFeaturedChampionship() {
 }
 
 export default async function LandingPage() {
-  const [spotlightDrivers, featured] = await Promise.all([
+  const [spotlightDrivers, featured, newestDrivers] = await Promise.all([
     getSpotlightDrivers(),
     getFeaturedChampionship(),
+    getNewestDrivers(),
   ]);
 
   return (
@@ -42,7 +60,7 @@ export default async function LandingPage() {
         </section>
 
         <section id="newdrivers">
-          <NewDrivers/>
+          <NewDrivers drivers={newestDrivers} />
         </section>
 
         <section id="championship">

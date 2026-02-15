@@ -25,7 +25,7 @@ const DriversSpotlight = ({ drivers }: Props) => {
 
         <div className="flex justify-between items-end mb-12 border-b border-gray-100 pb-6">
           <div>
-            <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Featured Drivers</h2>
+            <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Top Drivers</h2>
           </div>
           <Link
             href="/drivers"
