@@ -42,7 +42,7 @@ export default async function LandingPage() {
         </section>
 
         <section id="newdrivers">
-          <NewDrivers drivers={[]}  />
+          <NewDrivers/>
         </section>
 
         <section id="championship">
