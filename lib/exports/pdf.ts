@@ -15,7 +15,7 @@ const INFO_LABEL_WIDTH = 95;
 const INFO_VALUE_WIDTH = 265;
 const INFO_TABLE_WIDTH = INFO_LABEL_WIDTH + INFO_VALUE_WIDTH;
 
-const RES_COL_WIDTHS = [38, 200, 38, 48];
+const RES_COL_WIDTHS = [52, 196, 38, 48];
 const RESULTS_TABLE_WIDTH = RES_COL_WIDTHS.reduce((a, b) => a + b, 0);
 
 function drawTableBorders(

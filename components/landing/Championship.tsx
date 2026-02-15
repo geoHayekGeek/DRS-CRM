@@ -43,16 +43,14 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
         <div className="mb-12 flex flex-col items-center text-center gap-4">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Featured Championship</h2>
-            <p className="mt-2 text-red-600">{displayName}</p>
+            <p className="mt-2 text-lg font-semibold text-gray-900">{displayName}</p>
           </div>
           <Link
             href="/championships"
-            className="text-sm font-semibold text-red-600 hover:text-red-800 transition flex items-center gap-1"
+            className="text-sm font-bold text-gray-900 hover:text-red-600 transition flex items-center gap-2 group"
           >
             View All Championships
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
+            <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
           </Link>
         </div>
 
