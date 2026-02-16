@@ -33,6 +33,7 @@ const Navbar = () => {
             <NavItem href="/drivers">Drivers</NavItem>
             <NavItem href="/championships">Championship</NavItem>
             <NavItem href="/landing/about">About</NavItem>
+            <NavItem href="/landing/gallery">Gallery</NavItem>
             <NavItem href="/landing/contact">Contact</NavItem>
           </div>
 
@@ -69,6 +70,7 @@ const Navbar = () => {
           <MobileNavItem href="/drivers" delay="100ms">Drivers</MobileNavItem>
           <MobileNavItem href="/championships" delay="200ms">Championship</MobileNavItem>
           <MobileNavItem href="/landing/about" delay="300ms">About</MobileNavItem>
+          <MobileNavItem href="/landing/gallery" delay="350ms">Gallery</MobileNavItem>
           <MobileNavItem href="/landing/contact" delay="400ms">Contact</MobileNavItem>
         </div>
       </div>

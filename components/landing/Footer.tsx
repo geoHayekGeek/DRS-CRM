@@ -28,6 +28,7 @@ const Footer = () => {
             <FooterLink href="/drivers">Drivers</FooterLink>
             <FooterLink href="/championships">Championship</FooterLink>
             <FooterLink href="/landing/about">About</FooterLink>
+            <FooterLink href="/landing/gallery">Gallery</FooterLink>
             <FooterLink href="/landing/contact">Contact</FooterLink>
           </nav>
 
