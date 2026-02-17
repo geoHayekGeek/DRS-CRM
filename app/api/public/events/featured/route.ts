@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const FEATURED_LIMIT = 3;
 const UPCOMING_DAYS = 30;
 
@@ -9,6 +11,11 @@ export async function GET() {
     const now = new Date();
     const futureCutoff = new Date(now);
     futureCutoff.setDate(futureCutoff.getDate() + UPCOMING_DAYS);
+
+    if (!db.event) {
+      console.warn("[events/featured] Prisma client has no event model. Run: npx prisma generate");
+      return NextResponse.json({ now: now.toISOString(), events: [] }, { status: 200 });
+    }
 
     const allEvents = await db.event.findMany({
       orderBy: { startsAt: "asc" },
@@ -78,9 +85,10 @@ export async function GET() {
       events: result,
     });
   } catch (error) {
+    console.error("[events/featured]", error);
     return NextResponse.json(
-      { error: "Failed to fetch featured events" },
-      { status: 500 }
+      { now: new Date().toISOString(), events: [] },
+      { status: 200 }
     );
   }
 }
