@@ -10,7 +10,9 @@ const ROW_HEIGHT_INFO = 20;
 const ROW_HEIGHT_RESULTS = 18;
 const TABLE_LEFT = 50;
 const PAGE_WIDTH = 612;
+const PAGE_HEIGHT = 792;
 const MARGIN = 50;
+const BOTTOM_MARGIN = 50;
 
 const INFO_LABEL_WIDTH = 95;
 const INFO_VALUE_WIDTH = 265;
@@ -91,58 +93,93 @@ function writeSessionBlock(
   );
   y = infoTableTop + infoRows.length * ROW_HEIGHT_INFO + 16;
 
-  const resultsTableTop = y;
   const resCellOpts = { height: 14, ellipsis: true as const };
-  doc.font("Helvetica-Bold").fontSize(FONT_SIZE_HEADER);
-  const headerY = resultsTableTop + 4;
-  let cx = TABLE_LEFT;
-  doc.text("Position", cx + 4, headerY, { width: RES_COL_WIDTHS[0] - 8, ...resCellOpts });
-  cx += RES_COL_WIDTHS[0];
-  doc.text("Driver", cx + 4, headerY, { width: RES_COL_WIDTHS[1] - 8, ...resCellOpts });
-  cx += RES_COL_WIDTHS[1];
-  doc.text("Kart", cx + 4, headerY, { width: RES_COL_WIDTHS[2] - 8, ...resCellOpts });
-  cx += RES_COL_WIDTHS[2];
-  doc.text("Points", cx + 4, headerY, { width: RES_COL_WIDTHS[3] - 8, ...resCellOpts });
+  const maxY = PAGE_HEIGHT - BOTTOM_MARGIN;
 
-  doc.font("Helvetica").fontSize(FONT_SIZE_NORMAL);
-  block.results.forEach((row, i) => {
-    const rowY = resultsTableTop + ROW_HEIGHT_RESULTS + i * ROW_HEIGHT_RESULTS + 4;
-    cx = TABLE_LEFT;
-    doc.text(String(row.position), cx + 4, rowY, {
-      width: RES_COL_WIDTHS[0] - 8,
-      ...resCellOpts,
-    });
+  const getRowsPerPage = (tableTop: number) =>
+    Math.max(1, Math.floor(
+      (maxY - tableTop - ROW_HEIGHT_RESULTS - 24) / ROW_HEIGHT_RESULTS
+    ));
+
+  let resultIndex = 0;
+  let isFirstResultsPage = true;
+
+  while (resultIndex < block.results.length) {
+    if (!isFirstResultsPage) {
+      doc.addPage();
+      y = MARGIN;
+      doc.font("Helvetica").fontSize(FONT_SIZE_NORMAL);
+      const groupPart = block.group != null ? ` — Group ${block.group}` : "";
+      doc.fillColor("#666666").text(
+        `${block.sessionType}${groupPart} (continued)`,
+        TABLE_LEFT,
+        y,
+        { width: 400, ...resCellOpts }
+      );
+      y += 20;
+    }
+
+    const resultsTableTop = y;
+    const rowsPerPage = getRowsPerPage(resultsTableTop);
+    const chunk = block.results.slice(
+      resultIndex,
+      resultIndex + rowsPerPage
+    );
+    const chunkRowCount = chunk.length + 1;
+
+    doc.font("Helvetica-Bold").fontSize(FONT_SIZE_HEADER);
+    const headerY = resultsTableTop + 4;
+    let cx = TABLE_LEFT;
+    doc.text("Position", cx + 4, headerY, { width: RES_COL_WIDTHS[0] - 8, ...resCellOpts });
     cx += RES_COL_WIDTHS[0];
-    doc.text(row.driverName, cx + 4, rowY, {
-      width: RES_COL_WIDTHS[1] - 8,
-      ...resCellOpts,
-    });
+    doc.text("Driver", cx + 4, headerY, { width: RES_COL_WIDTHS[1] - 8, ...resCellOpts });
     cx += RES_COL_WIDTHS[1];
-    doc.text(String(row.kartNumber), cx + 4, rowY, {
-      width: RES_COL_WIDTHS[2] - 8,
-      ...resCellOpts,
-    });
+    doc.text("Kart", cx + 4, headerY, { width: RES_COL_WIDTHS[2] - 8, ...resCellOpts });
     cx += RES_COL_WIDTHS[2];
-    doc.text(formatPoints(row.points), cx + 4, rowY, {
-      width: RES_COL_WIDTHS[3] - 8,
-      ...resCellOpts,
+    doc.text("Points", cx + 4, headerY, { width: RES_COL_WIDTHS[3] - 8, ...resCellOpts });
+
+    doc.font("Helvetica").fontSize(FONT_SIZE_NORMAL);
+    chunk.forEach((row, i) => {
+      const rowY = resultsTableTop + ROW_HEIGHT_RESULTS + i * ROW_HEIGHT_RESULTS + 4;
+      cx = TABLE_LEFT;
+      doc.text(String(row.position), cx + 4, rowY, {
+        width: RES_COL_WIDTHS[0] - 8,
+        ...resCellOpts,
+      });
+      cx += RES_COL_WIDTHS[0];
+      doc.text(row.driverName, cx + 4, rowY, {
+        width: RES_COL_WIDTHS[1] - 8,
+        ...resCellOpts,
+      });
+      cx += RES_COL_WIDTHS[1];
+      doc.text(String(row.kartNumber), cx + 4, rowY, {
+        width: RES_COL_WIDTHS[2] - 8,
+        ...resCellOpts,
+      });
+      cx += RES_COL_WIDTHS[2];
+      doc.text(formatPoints(row.points), cx + 4, rowY, {
+        width: RES_COL_WIDTHS[3] - 8,
+        ...resCellOpts,
+      });
     });
-  });
 
-  const resultsRowCount = block.results.length + 1;
-  drawTableBorders(
-    doc,
-    TABLE_LEFT,
-    resultsTableTop,
-    RES_COL_WIDTHS,
-    resultsRowCount,
-    ROW_HEIGHT_RESULTS
-  );
+    drawTableBorders(
+      doc,
+      TABLE_LEFT,
+      resultsTableTop,
+      RES_COL_WIDTHS,
+      chunkRowCount,
+      ROW_HEIGHT_RESULTS
+    );
 
-  y =
-    resultsTableTop +
-    resultsRowCount * ROW_HEIGHT_RESULTS +
-    24;
+    resultIndex += chunk.length;
+    isFirstResultsPage = false;
+    y =
+      resultsTableTop +
+      chunkRowCount * ROW_HEIGHT_RESULTS +
+      24;
+  }
+
   return y;
 }
 
