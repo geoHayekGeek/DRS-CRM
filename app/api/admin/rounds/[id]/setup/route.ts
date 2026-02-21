@@ -62,32 +62,23 @@ export async function POST(
       );
     }
 
-    if (!round.championshipId) {
-      return NextResponse.json(
-        { error: "Round must belong to a championship" },
-        { status: 400 }
-      );
-    }
-
-    const championshipDrivers = await db.championshipDriver.findMany({
-      where: { championshipId: round.championshipId },
+    const roundDrivers = await db.roundDriver.findMany({
+      where: { roundId },
       include: { driver: true },
     });
-    const drivers = championshipDrivers.map((cd) => cd.driver);
+    const drivers = roundDrivers.map((rd) => rd.driver);
 
     if (drivers.length === 0) {
       return NextResponse.json(
-        { error: "No drivers assigned to this championship. Assign drivers on the championship page before setting up the round." },
+        { error: "No participating drivers for this round. Add drivers on the round Edit page before setting up." },
         { status: 400 }
       );
     }
 
     const availableKarts = round.availableKarts ?? [];
-    if (availableKarts.length < drivers.length) {
+    if (availableKarts.length === 0) {
       return NextResponse.json(
-        {
-          error: `Not enough karts. You have ${availableKarts.length} karts but ${drivers.length} drivers. Add at least ${drivers.length} kart numbers.`,
-        },
+        { error: "At least one kart is required. Add kart numbers in the round settings." },
         { status: 400 }
       );
     }
@@ -102,7 +93,7 @@ export async function POST(
       shuffledDrivers.forEach((driver, index) => {
         const groupIndex = index % groupLabels.length;
         const group = groupLabels[groupIndex];
-        const kartNumber = shuffledKarts[index];
+        const kartNumber = shuffledKarts[index % shuffledKarts.length];
 
         groupAssignments.push({
           roundId,

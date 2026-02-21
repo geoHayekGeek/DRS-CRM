@@ -50,7 +50,7 @@ function parseAvailableKarts(value: unknown): number[] | null {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, date, trackId, championshipId, numberOfGroups, availableKarts } = body;
+    const { name, date, trackId, championshipId, numberOfGroups, availableKarts, driverIds } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
@@ -107,6 +107,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const driverIdsArray = Array.isArray(driverIds)
+      ? (driverIds as unknown[]).filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+      : [];
+    const uniqueDriverIds = [...new Set(driverIdsArray)];
+
+    if (uniqueDriverIds.length === 0) {
+      return NextResponse.json(
+        { error: "At least one participating driver is required" },
+        { status: 400 }
+      );
+    }
+
+    const validDrivers = await db.driver.findMany({
+      where: { id: { in: uniqueDriverIds } },
+      select: { id: true },
+    });
+    const validIds = new Set(validDrivers.map((d) => d.id));
+    const missing = uniqueDriverIds.filter((id) => !validIds.has(id));
+    if (missing.length > 0) {
+      return NextResponse.json(
+        { error: `Driver(s) not found: ${missing.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
     const track = await db.track.findUnique({
       where: { id: trackId },
     });
@@ -129,25 +154,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const round = await db.round.create({
-      data: {
-        name: name.trim(),
-        date: roundDate,
-        trackId,
-        championshipId,
-        numberOfGroups: numGroups,
-        availableKarts: karts,
-      },
-      include: {
-        track: true,
-        championship: {
-          select: {
-            id: true,
-            name: true,
-            isCurrent: true,
+    const round = await db.$transaction(async (tx) => {
+      const created = await tx.round.create({
+        data: {
+          name: name.trim(),
+          date: roundDate,
+          trackId,
+          championshipId,
+          numberOfGroups: numGroups,
+          availableKarts: karts,
+        },
+      });
+
+      await tx.roundDriver.createMany({
+        data: uniqueDriverIds.map((driverId) => ({
+          roundId: created.id,
+          driverId,
+        })),
+        skipDuplicates: true,
+      });
+
+      return tx.round.findUniqueOrThrow({
+        where: { id: created.id },
+        include: {
+          track: true,
+          championship: {
+            select: {
+              id: true,
+              name: true,
+              isCurrent: true,
+            },
           },
         },
-      },
+      });
     });
 
     return NextResponse.json(round, { status: 201 });

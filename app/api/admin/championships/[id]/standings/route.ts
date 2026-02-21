@@ -33,13 +33,6 @@ export async function GET(
     const roundIds = rounds.map((r) => r.id);
     const roundMap = new Map(rounds.map((r) => [r.id, { name: r.name, date: r.date }]));
 
-    const assignedDriverIds = await db.championshipDriver
-      .findMany({
-        where: { championshipId },
-        select: { driverId: true },
-      })
-      .then((rows) => new Set(rows.map((r) => r.driverId)));
-
     if (roundIds.length === 0) {
       return NextResponse.json({
         championship: {
@@ -111,9 +104,8 @@ export async function GET(
       }
     }
 
-    // Sort pointsByRound by round order (match rounds array); only include assigned drivers
+    // Sort pointsByRound by round order; include only drivers who have results in this championship
     const standings = Array.from(driverMap.values())
-      .filter((entry) => assignedDriverIds.has(entry.driverId))
       .map((entry) => ({
         ...entry,
         pointsByRound: entry.pointsByRound.sort((a, b) => {

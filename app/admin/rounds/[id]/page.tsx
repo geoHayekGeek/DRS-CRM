@@ -15,7 +15,10 @@ interface Championship {
   id: string;
   name: string;
   isCurrent: boolean;
-  _count?: { championshipDrivers: number };
+}
+
+interface RoundCounts {
+  roundDrivers?: number;
 }
 
 interface RoundImage {
@@ -36,6 +39,7 @@ interface Round {
   createdAt: string;
   updatedAt: string;
   roundImages?: RoundImage[];
+  _count?: RoundCounts;
 }
 
 interface Session {
@@ -219,8 +223,8 @@ export default function RoundDetailPage() {
   };
 
   const roundHasResults = sessions.some((s) => s.hasResults);
-  const assignedDriverCount = round?.championship?._count?.championshipDrivers ?? 0;
-  const canSetup = !round?.setupCompleted && assignedDriverCount > 0;
+  const roundDriverCount = round?._count?.roundDrivers ?? 0;
+  const canSetup = !round?.setupCompleted && roundDriverCount > 0;
 
   const handleExport = async (format: "pdf" | "xlsx") => {
     try {
@@ -291,9 +295,9 @@ export default function RoundDetailPage() {
           <div className="flex flex-wrap gap-3 shrink-0">
             {!round.setupCompleted && (
               <>
-                {round.championship && assignedDriverCount === 0 && (
+                {roundDriverCount === 0 && (
                   <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    No drivers assigned to this championship. Assign drivers on the championship page to enable round setup.
+                    No participating drivers for this round. Add drivers on the Edit page to enable round setup.
                   </p>
                 )}
                 <button
