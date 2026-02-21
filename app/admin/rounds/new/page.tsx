@@ -34,11 +34,30 @@ export default function NewRoundPage() {
     numberOfGroups: "4",
     availableKarts: "",
   });
+  const [allDrivers, setAllDrivers] = useState<{ id: string; fullName: string }[]>([]);
+  const [selectedDriverIds, setSelectedDriverIds] = useState<string[]>([]);
+  const [driversLoading, setDriversLoading] = useState(true);
 
   useEffect(() => {
     fetchTracks();
     fetchChampionships();
+    fetchDrivers();
   }, []);
+
+  const fetchDrivers = async () => {
+    try {
+      setDriversLoading(true);
+      const response = await fetch("/api/admin/drivers");
+      if (response.ok) {
+        const data = await response.json();
+        setAllDrivers(data);
+      }
+    } catch {
+      toast.error("Failed to load drivers");
+    } finally {
+      setDriversLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Auto-select championship when championships are loaded
@@ -151,6 +170,12 @@ export default function NewRoundPage() {
         karts.push(n);
       }
 
+      if (selectedDriverIds.length === 0) {
+        setError("Select at least one participating driver");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         name: formData.name.trim(),
         date: formData.date,
@@ -158,6 +183,7 @@ export default function NewRoundPage() {
         championshipId: formData.championshipId,
         numberOfGroups: numGroups,
         availableKarts: karts,
+        driverIds: selectedDriverIds,
       };
 
       const response = await fetch("/api/admin/rounds", {
@@ -322,7 +348,52 @@ export default function NewRoundPage() {
                   "--tw-ring-color": theme.colors.primary.red,
                 } as React.CSSProperties & { "--tw-ring-color": string }}
               />
-              <p className="mt-1 text-xs text-gray-500">Comma-separated unique kart numbers. Must be at least as many as drivers.</p>
+              <p className="mt-1 text-xs text-gray-500">Comma-separated unique kart numbers. At least one required. Karts may be reused if drivers exceed karts.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Participating Drivers *
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Select drivers for this round only. At least one driver is required before setup.
+              </p>
+              {driversLoading ? (
+                <p className="text-sm text-gray-500">Loading drivers...</p>
+              ) : allDrivers.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  No drivers in database.{" "}
+                  <a href="/admin/drivers/new" className="text-red-600 hover:underline">
+                    Create drivers first
+                  </a>
+                  .
+                </p>
+              ) : (
+                <select
+                  multiple
+                  value={selectedDriverIds}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+                    setSelectedDriverIds(selected);
+                  }}
+                  className="block w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{
+                    "--tw-ring-color": theme.colors.primary.red,
+                  } as React.CSSProperties & { "--tw-ring-color": string }}
+                  aria-label="Select participating drivers"
+                >
+                  {allDrivers.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.fullName}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {selectedDriverIds.length > 0 && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {selectedDriverIds.length} driver(s) selected. Use Ctrl/Cmd to multi-select.
+                </p>
+              )}
             </div>
 
             <div>
@@ -365,11 +436,11 @@ export default function NewRoundPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 type="submit"
-                disabled={loading || tracksLoading || championshipsLoading || championships.length === 0}
+                disabled={loading || tracksLoading || championshipsLoading || driversLoading || championships.length === 0 || selectedDriverIds.length === 0}
                 className="w-full sm:w-auto min-h-[44px] px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 style={{ backgroundColor: theme.colors.primary.red }}
-                onMouseEnter={(e) => !loading && !tracksLoading && !championshipsLoading && championships.length > 0 && (e.currentTarget.style.backgroundColor = "#A01516")}
-                onMouseLeave={(e) => !loading && !tracksLoading && !championshipsLoading && championships.length > 0 && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+                onMouseEnter={(e) => !loading && !tracksLoading && !championshipsLoading && !driversLoading && championships.length > 0 && selectedDriverIds.length > 0 && (e.currentTarget.style.backgroundColor = "#A01516")}
+                onMouseLeave={(e) => !loading && !tracksLoading && !championshipsLoading && !driversLoading && championships.length > 0 && selectedDriverIds.length > 0 && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
               >
                 {loading ? "Creating..." : "Create Round"}
               </button>

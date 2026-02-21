@@ -16,9 +16,9 @@ export async function GET(
             id: true,
             name: true,
             isCurrent: true,
-            _count: { select: { championshipDrivers: true } },
           },
         },
+        _count: { select: { roundDrivers: true } },
         roundImages: {
           orderBy: { createdAt: "asc" },
         },

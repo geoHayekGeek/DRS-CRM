@@ -6,15 +6,27 @@ Your production database already has tables (e.g. from an earlier `prisma db pus
 
 ### One-time baseline on Railway
 
-After deploying (so the new `prisma/migrations` is in the build), run these in Railway’s shell (or in a one-off job with `DATABASE_URL` set):
+After deploying (so the new `prisma/migrations` is in the build), open **Railway → your app → Shell** (or run a one-off job with `DATABASE_URL` set), then:
+
+**If your DB already has all current tables** (e.g. you used `prisma db push` or created them manually), mark every migration as applied so Prisma doesn’t try to run their SQL:
 
 ```bash
-# 1. Mark the initial migration as already applied (do not run its SQL)
-npx prisma migrate resolve --applied 20250209140000_init
+# Mark each migration as already applied (use the exact folder names under prisma/migrations/)
+npx prisma migrate resolve --applied 20260215100000_add_event_description_and_images
+npx prisma migrate resolve --applied 20260215122904_init
+npx prisma migrate resolve --applied 20260216000000_add_role_and_name
 
-# 2. Apply any future migrations (will report 0 pending after baseline)
+# Then run deploy (will say 0 pending)
 npx prisma migrate deploy
 ```
+
+**If your DB only has some tables** (e.g. only the very first schema), run `migrate resolve --applied` only for migrations that match what’s already in the DB, then run:
+
+```bash
+npx prisma migrate deploy
+```
+
+to apply the rest.
 
 - **If you use a custom start command** that runs `prisma migrate deploy` before start, keep it. After the one-time `migrate resolve` above, future deploys will run `migrate deploy` with no issues.
 - **If the DB is empty or you can wipe it**, you can skip the baseline and run only `npx prisma migrate deploy`; it will apply the init migration.
@@ -23,23 +35,20 @@ Reference: [Prisma – Baseline an existing production database](https://www.pri
 
 ---
 
-## "The table championship_drivers does not exist" (P2021)
+## Round driver refactor (20260221000000)
 
-This happens when a migration was **marked as applied** during baseline (`prisma migrate resolve --applied ...`) but its SQL was never run, so the table was never created.
-
-**Fix:** Create the missing table on the production database.
+Driver participation is now per-round. Migration creates `round_drivers`, backfills from `group_assignments`, drops `championship_drivers`. If `migrate deploy` fails:
 
 **Option A – Prisma (recommended)**  
 In Railway’s shell (with `DATABASE_URL` set):
 
 ```bash
-npx prisma db execute --file prisma/fix-championship-drivers.sql
+npx prisma db execute --file prisma/migrations/20260221000000_round_driver_refactor/migration.sql
+npx prisma migrate resolve --applied 20260221000000_round_driver_refactor
 ```
 
 **Option B – Run SQL in Railway’s PostgreSQL UI**  
-In Railway → your PostgreSQL service → Data or Query tab, run the contents of `prisma/fix-championship-drivers.sql`.
-
-After the table exists, restart the app; the error should go away.
+In Railway PostgreSQL Query tab, run the migration SQL from `prisma/migrations/20260221000000_round_driver_refactor/migration.sql`.
 
 ---
 

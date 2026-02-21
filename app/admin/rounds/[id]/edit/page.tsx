@@ -51,12 +51,31 @@ export default function EditRoundPage() {
     availableKarts: "",
   });
   const [setupCompleted, setSetupCompleted] = useState(false);
+  const [allDrivers, setAllDrivers] = useState<{ id: string; fullName: string }[]>([]);
+  const [selectedDriverIds, setSelectedDriverIds] = useState<string[]>([]);
+  const [driversLoading, setDriversLoading] = useState(true);
 
   useEffect(() => {
     fetchTracks();
     fetchChampionships();
+    fetchDrivers();
     fetchRound();
   }, [id]);
+
+  const fetchDrivers = async () => {
+    try {
+      setDriversLoading(true);
+      const response = await fetch("/api/admin/drivers");
+      if (response.ok) {
+        const data = await response.json();
+        setAllDrivers(data);
+      }
+    } catch {
+      toast.error("Failed to load drivers");
+    } finally {
+      setDriversLoading(false);
+    }
+  };
 
   const fetchTracks = async () => {
     try {
@@ -93,11 +112,14 @@ export default function EditRoundPage() {
   const fetchRound = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/rounds/${id}`);
-      if (!response.ok) {
+      const [roundRes, driversRes] = await Promise.all([
+        fetch(`/api/admin/rounds/${id}`),
+        fetch(`/api/admin/rounds/${id}/drivers`),
+      ]);
+      if (!roundRes.ok) {
         throw new Error("Failed to fetch round");
       }
-      const round: Round = await response.json();
+      const round: Round = await roundRes.json();
       const dateStr = new Date(round.date).toISOString().split("T")[0];
       setSetupCompleted(round.setupCompleted ?? false);
       setFormData({
@@ -108,6 +130,10 @@ export default function EditRoundPage() {
         numberOfGroups: String(round.numberOfGroups ?? 4),
         availableKarts: (round.availableKarts ?? []).join(", "),
       });
+      if (driversRes.ok) {
+        const driversData = await driversRes.json();
+        setSelectedDriverIds(driversData.map((d: { driverId: string }) => d.driverId));
+      }
     } catch (err) {
       const errorMessage = "Failed to load round";
       setError(errorMessage);
@@ -143,6 +169,12 @@ export default function EditRoundPage() {
 
       if (!formData.championshipId) {
         setError("Championship is required");
+        setSaving(false);
+        return;
+      }
+
+      if (!setupCompleted && selectedDriverIds.length === 0) {
+        setError("Select at least one participating driver");
         setSaving(false);
         return;
       }
@@ -202,6 +234,20 @@ export default function EditRoundPage() {
         toast.error(errorMessage);
         setSaving(false);
         return;
+      }
+
+      if (!setupCompleted) {
+        const driversRes = await fetch(`/api/admin/rounds/${id}/drivers`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ driverIds: selectedDriverIds }),
+        });
+        if (!driversRes.ok) {
+          const driversData = await driversRes.json().catch(() => ({}));
+          toast.error(driversData.error || "Failed to update participating drivers");
+          setSaving(false);
+          return;
+        }
       }
 
       toast.success("Round updated successfully");
@@ -303,6 +349,44 @@ export default function EditRoundPage() {
             {!setupCompleted && (
               <>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Participating Drivers *
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Select drivers for this round only. At least one driver is required before setup.
+                  </p>
+                  {driversLoading ? (
+                    <p className="text-sm text-gray-500">Loading drivers...</p>
+                  ) : allDrivers.length === 0 ? (
+                    <p className="text-sm text-gray-500">No drivers in database.</p>
+                  ) : (
+                    <select
+                      multiple
+                      value={selectedDriverIds}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+                        setSelectedDriverIds(selected);
+                      }}
+                      className="block w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{
+                        "--tw-ring-color": theme.colors.primary.red,
+                      } as React.CSSProperties & { "--tw-ring-color": string }}
+                      aria-label="Select participating drivers"
+                    >
+                      {allDrivers.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {selectedDriverIds.length > 0 && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {selectedDriverIds.length} driver(s) selected. Use Ctrl/Cmd to multi-select.
+                    </p>
+                  )}
+                </div>
+                <div>
                   <label htmlFor="numberOfGroups" className="block text-sm font-medium text-gray-700 mb-2">
                     Number of groups *
                   </label>
@@ -341,7 +425,7 @@ export default function EditRoundPage() {
             {setupCompleted && (
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm font-medium text-gray-700">Setup completed</p>
-                <p className="text-xs text-gray-500 mt-1">Number of groups and available karts cannot be changed after setup.</p>
+                <p className="text-xs text-gray-500 mt-1">Number of groups, available karts, and participating drivers cannot be changed after setup.</p>
               </div>
             )}
 
@@ -385,11 +469,11 @@ export default function EditRoundPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 type="submit"
-                disabled={saving || tracksLoading || championshipsLoading}
+                disabled={saving || tracksLoading || championshipsLoading || driversLoading || (!setupCompleted && selectedDriverIds.length === 0)}
                 className="w-full sm:w-auto min-h-[44px] px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 style={{ backgroundColor: theme.colors.primary.red }}
-                onMouseEnter={(e) => !saving && !tracksLoading && !championshipsLoading && (e.currentTarget.style.backgroundColor = "#A01516")}
-                onMouseLeave={(e) => !saving && !tracksLoading && !championshipsLoading && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+                onMouseEnter={(e) => !saving && !tracksLoading && !championshipsLoading && !driversLoading && (setupCompleted || selectedDriverIds.length > 0) && (e.currentTarget.style.backgroundColor = "#A01516")}
+                onMouseLeave={(e) => !saving && !tracksLoading && !championshipsLoading && !driversLoading && (setupCompleted || selectedDriverIds.length > 0) && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
