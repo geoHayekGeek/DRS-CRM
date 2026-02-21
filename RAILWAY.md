@@ -52,6 +52,27 @@ In Railway PostgreSQL Query tab, run the migration SQL from `prisma/migrations/2
 
 ---
 
+## Standings override (20260225000000)
+
+Adds `standings_overrides` table for manual tie-break ordering. If `migrate deploy` fails, run the migration SQL manually and resolve:
+
+```bash
+npx prisma db execute --file prisma/migrations/20260225000000_add_standings_override/migration.sql
+npx prisma migrate resolve --applied 20260225000000_add_standings_override
+```
+
+---
+
+## Driver point adjustments (20260224000000)
+
+Adds `driver_point_adjustments` table for live penalty/bonus adjustments. Run normally:
+
+```bash
+npx prisma migrate deploy
+```
+
+---
+
 ## Build / start commands
 
 - **Build:** `npm run build` (runs `prisma generate` and `next build`).
