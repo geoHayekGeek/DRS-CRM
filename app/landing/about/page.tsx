@@ -1,4 +1,5 @@
 import AboutPage from '@/components/landing/AboutPage';
+import Gallery from '@/components/landing/Gallery';
 import React from 'react';
 
 export default function About() {
@@ -10,6 +11,10 @@ export default function About() {
         
         <section>
            <AboutPage/>
+        </section>
+
+        <section id="gallery">
+          <Gallery />
         </section>
 
       </main>

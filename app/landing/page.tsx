@@ -1,5 +1,6 @@
 import Championship from '@/components/landing/Championship';
 import DriversSpotlight from '@/components/landing/DriversSpotlight';
+import Gallery from '@/components/landing/Gallery';
 import Hero from '@/components/landing/Hero';
 import NewDrivers from '@/components/landing/NewDrivers';
 import { headers } from 'next/headers';
@@ -91,6 +92,10 @@ export default async function LandingPage() {
 
         <section id="driversspotlight">
           <DriversSpotlight drivers={spotlightDrivers} />
+        </section>
+
+        <section id="gallery">
+          <Gallery />
         </section>
       </main>
     </div>

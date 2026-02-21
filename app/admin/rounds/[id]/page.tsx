@@ -391,43 +391,56 @@ export default function RoundDetailPage() {
             </dl>
           </div>
 
-          {assignments.length > 0 && (
-            <div>
-              <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Group Assignments</h2>
-              <div className="mt-4 overflow-x-auto overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Driver
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Group
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Kart Number
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {assignments.map((assignment) => (
-                      <tr key={assignment.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                          {assignment.driver.fullName}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
-                          {assignment.group}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
-                          {assignment.kartNumber}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {assignments.length > 0 && (() => {
+            const grouped = assignments.reduce<Record<string, GroupAssignment[]>>((acc, a) => {
+              const g = a.group;
+              if (!acc[g]) acc[g] = [];
+              acc[g].push(a);
+              return acc;
+            }, {});
+            const sortedGroups = Object.keys(grouped).sort();
+            return (
+              <div>
+                <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Group Assignments</h2>
+                <div className="mt-4 flex flex-col gap-4">
+                  {sortedGroups.map((group) => (
+                    <div
+                      key={group}
+                      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                    >
+                      <h3 className="mb-3 text-base font-semibold text-gray-900">Group {group}</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-0">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Driver
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Kart Number
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {grouped[group].map((assignment) => (
+                              <tr key={assignment.id} className="hover:bg-gray-50">
+                                <td className="px-3 py-2.5 text-sm font-medium text-gray-900">
+                                  {assignment.driver.fullName}
+                                </td>
+                                <td className="px-3 py-2.5 text-sm text-gray-500">
+                                  {assignment.kartNumber}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           <div>
             <div className="flex items-center justify-between mb-4">
