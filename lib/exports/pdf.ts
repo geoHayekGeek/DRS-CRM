@@ -63,17 +63,20 @@ function writeSessionBlock(
   ];
 
   const infoTableTop = y;
+  const cellTextOpts = { height: 14, ellipsis: true as const };
   doc.font("Helvetica-Bold").fontSize(FONT_SIZE_HEADER);
   infoRows.forEach(([label, value], i) => {
     const rowY = infoTableTop + i * ROW_HEIGHT_INFO + 4;
     doc.fillColor("#333333").text(label, TABLE_LEFT + 4, rowY, {
       width: INFO_LABEL_WIDTH - 8,
+      ...cellTextOpts,
     });
     doc
       .font("Helvetica")
       .fillColor("#000000")
       .text(value, TABLE_LEFT + INFO_LABEL_WIDTH + 4, rowY, {
         width: INFO_VALUE_WIDTH - 8,
+        ...cellTextOpts,
       });
     doc.font("Helvetica-Bold");
   });
@@ -89,16 +92,17 @@ function writeSessionBlock(
   y = infoTableTop + infoRows.length * ROW_HEIGHT_INFO + 16;
 
   const resultsTableTop = y;
+  const resCellOpts = { height: 14, ellipsis: true as const };
   doc.font("Helvetica-Bold").fontSize(FONT_SIZE_HEADER);
   const headerY = resultsTableTop + 4;
   let cx = TABLE_LEFT;
-  doc.text("Position", cx + 4, headerY, { width: RES_COL_WIDTHS[0] - 8 });
+  doc.text("Position", cx + 4, headerY, { width: RES_COL_WIDTHS[0] - 8, ...resCellOpts });
   cx += RES_COL_WIDTHS[0];
-  doc.text("Driver", cx + 4, headerY, { width: RES_COL_WIDTHS[1] - 8 });
+  doc.text("Driver", cx + 4, headerY, { width: RES_COL_WIDTHS[1] - 8, ...resCellOpts });
   cx += RES_COL_WIDTHS[1];
-  doc.text("Kart", cx + 4, headerY, { width: RES_COL_WIDTHS[2] - 8 });
+  doc.text("Kart", cx + 4, headerY, { width: RES_COL_WIDTHS[2] - 8, ...resCellOpts });
   cx += RES_COL_WIDTHS[2];
-  doc.text("Points", cx + 4, headerY, { width: RES_COL_WIDTHS[3] - 8 });
+  doc.text("Points", cx + 4, headerY, { width: RES_COL_WIDTHS[3] - 8, ...resCellOpts });
 
   doc.font("Helvetica").fontSize(FONT_SIZE_NORMAL);
   block.results.forEach((row, i) => {
@@ -106,18 +110,22 @@ function writeSessionBlock(
     cx = TABLE_LEFT;
     doc.text(String(row.position), cx + 4, rowY, {
       width: RES_COL_WIDTHS[0] - 8,
+      ...resCellOpts,
     });
     cx += RES_COL_WIDTHS[0];
     doc.text(row.driverName, cx + 4, rowY, {
       width: RES_COL_WIDTHS[1] - 8,
+      ...resCellOpts,
     });
     cx += RES_COL_WIDTHS[1];
     doc.text(String(row.kartNumber), cx + 4, rowY, {
       width: RES_COL_WIDTHS[2] - 8,
+      ...resCellOpts,
     });
     cx += RES_COL_WIDTHS[2];
     doc.text(formatPoints(row.points), cx + 4, rowY, {
       width: RES_COL_WIDTHS[3] - 8,
+      ...resCellOpts,
     });
   });
 
