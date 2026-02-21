@@ -4,19 +4,25 @@ import { db } from "@/lib/db";
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function formatSessionType(type: string): string {
-  switch (type) {
-    case "QUALIFYING":
-      return "Qualifying";
-    case "RACE":
-      return "Race";
-    case "FINAL_QUALIFYING":
-      return "Final Qualifying";
-    case "FINAL_RACE":
-      return "Final Race";
-    default:
-      return type;
+function getSessionDisplayName(
+  type: string,
+  group: string | null,
+  order?: number
+): string {
+  const typeLabels: Record<string, string> = {
+    QUALIFYING: "Qualifying",
+    RACE: "Race",
+    FINAL_QUALIFYING: "Final Qualifying",
+    FINAL_RACE: "Final Race",
+  };
+  const typeLabel = typeLabels[type] ?? type;
+  if (group) {
+    return `Group ${group} - ${typeLabel}`;
   }
+  if (type === "QUALIFYING" && order != null) {
+    return `Qualifying ${order}`;
+  }
+  return typeLabel;
 }
 
 export async function GET(
@@ -35,6 +41,7 @@ export async function GET(
       select: {
         id: true,
         type: true,
+        group: true,
         order: true,
         results: {
           orderBy: { position: "asc" },
@@ -47,9 +54,15 @@ export async function GET(
       },
     });
 
-    const list = sessions.map((s) => ({
+    const isLegacyGroupFinal = (s: { type: string; group: string | null }) =>
+      (s.type === "FINAL_QUALIFYING" || s.type === "FINAL_RACE") &&
+      s.group !== null;
+
+    const filteredSessions = sessions.filter((s) => !isLegacyGroupFinal(s));
+
+    const list = filteredSessions.map((s) => ({
       id: s.id,
-      name: formatSessionType(s.type),
+      name: getSessionDisplayName(s.type, s.group ?? null, s.order),
       order: s.order,
       results: s.results.map((r) => ({
         position: r.position,

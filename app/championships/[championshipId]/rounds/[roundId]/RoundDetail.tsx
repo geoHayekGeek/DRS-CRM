@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { formatPoints } from "@/lib/format-points";
 
 type SessionResult = {
   position: number;
@@ -107,9 +108,9 @@ export default function RoundDetail({
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-900">{index + 1}</td>
                     <td className="px-6 py-4 text-gray-900">{row.fullName}</td>
-                    <td className="px-6 py-4 text-right font-bold text-gray-900">
-                      {row.totalPoints}
-                    </td>
+<td className="px-6 py-4 text-right font-bold text-gray-900">
+                    {formatPoints(row.totalPoints)}
+                  </td>
                   </tr>
                 ))}
               </tbody>
@@ -178,7 +179,7 @@ export default function RoundDetail({
                                   <td className="py-2 font-medium text-gray-900">{r.position}</td>
                                   <td className="py-2 text-gray-900">{r.driverName}</td>
                                   <td className="py-2 text-right font-medium text-gray-900">
-                                    {r.points}
+                                    {formatPoints(r.points)}
                                   </td>
                                 </tr>
                               ))}

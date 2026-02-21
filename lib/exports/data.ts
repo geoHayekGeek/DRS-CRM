@@ -123,8 +123,11 @@ export async function loadRoundExportData(
 
   if (!round) return [];
 
+  const isLegacyGroupFinal = (s: { type: string; group: string | null }) =>
+    (s.type === "FINAL_QUALIFYING" || s.type === "FINAL_RACE") && s.group !== null;
+
   const sessionsWithResults = round.sessions.filter(
-    (s) => s.results.length > 0
+    (s) => s.results.length > 0 && !isLegacyGroupFinal(s)
   );
   if (sessionsWithResults.length === 0) return [];
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { formatPoints } from "@/lib/format-points";
 
 type Round = {
   id: string;
@@ -121,7 +122,7 @@ export default function ChampionshipDetail({
                     </td>
                     <td className="px-6 py-4 text-gray-900">{row.fullName}</td>
                     <td className="px-6 py-4 text-right font-bold text-gray-900">
-                      {row.totalPoints}
+                      {formatPoints(row.totalPoints)}
                     </td>
                   </tr>
                 ))}

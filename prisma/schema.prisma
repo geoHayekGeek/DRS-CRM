@@ -133,17 +133,24 @@ enum PointsMultiplier {
   DOUBLE
 }
 
+enum SessionStatus {
+  PENDING
+  READY
+  COMPLETED
+}
+
 model Session {
-  id              String            @id @default(uuid())
-  roundId         String            @map("round_id")
-  round           Round             @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  type            SessionType
-  group           String?
-  order           Int
+  id               String          @id @default(uuid())
+  roundId          String          @map("round_id")
+  round            Round           @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  type             SessionType
+  group            String?
+  order            Int
+  status           SessionStatus   @default(READY) @map("status")
   pointsMultiplier PointsMultiplier? @map("points_multiplier")
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
-  results         SessionResult[]
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  results          SessionResult[]
 
   @@map("sessions")
 }
@@ -155,7 +162,7 @@ model SessionResult {
   driverId  String   @map("driver_id")
   driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
   position  Int
-  points    Int
+  points    Float
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

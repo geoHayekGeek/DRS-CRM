@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getFinalQualifyingDrivers } from "@/lib/final-qualifying";
+import { getFinalRaceDrivers } from "@/lib/final-race";
 
 export async function GET(
   request: NextRequest,
@@ -37,11 +39,49 @@ export async function GET(
       );
     }
 
-    // Get eligible drivers for this session
-    let eligibleDrivers: any[] = [];
+    const sessionWithStatus = session as { status?: string };
+    let eligibleDrivers: { id: string; fullName: string; group: string; kartNumber?: number }[] = [];
+    let sessionStatus = sessionWithStatus.status ?? "READY";
 
-    if (session.group) {
-      // Group session: get drivers in this group
+    if (session.type === "FINAL_QUALIFYING" && session.group === null) {
+      const fqCheck = await getFinalQualifyingDrivers(session.roundId);
+      if (fqCheck.ready) {
+        eligibleDrivers = fqCheck.drivers.map((d) => ({
+          id: d.id,
+          fullName: d.fullName,
+          group: d.group,
+        }));
+        sessionStatus = session.results.length > 0 ? "COMPLETED" : "READY";
+        if (sessionWithStatus.status === "PENDING") {
+          await db.session.update({
+            where: { id: sessionId },
+            data: { status: "READY" },
+          });
+        }
+      } else {
+        sessionStatus = "PENDING";
+        eligibleDrivers = [];
+      }
+    } else if (session.type === "FINAL_RACE" && session.group === null) {
+      const frCheck = await getFinalRaceDrivers(session.roundId);
+      if (frCheck.ready) {
+        eligibleDrivers = frCheck.drivers.map((d) => ({
+          id: d.id,
+          fullName: d.fullName,
+          group: d.group,
+        }));
+        sessionStatus = session.results.length > 0 ? "COMPLETED" : "READY";
+        if (sessionWithStatus.status === "PENDING") {
+          await db.session.update({
+            where: { id: sessionId },
+            data: { status: "READY" },
+          });
+        }
+      } else {
+        sessionStatus = "PENDING";
+        eligibleDrivers = [];
+      }
+    } else if (session.group) {
       const groupAssignments = await db.groupAssignment.findMany({
         where: {
           roundId: session.roundId,
@@ -67,7 +107,6 @@ export async function GET(
         kartNumber: assignment.kartNumber,
       }));
     } else {
-      // Final session: get all drivers in the round
       const groupAssignments = await db.groupAssignment.findMany({
         where: {
           roundId: session.roundId,
@@ -116,6 +155,7 @@ export async function GET(
         type: session.type,
         group: session.group,
         order: session.order,
+        status: sessionStatus,
         pointsMultiplier: session.pointsMultiplier,
       },
       round: {

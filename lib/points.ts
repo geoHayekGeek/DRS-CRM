@@ -43,7 +43,7 @@ export function calculateRacePoints(position: number): number {
 
 /**
  * Apply multiplier to points.
- * HALF: divide by 2 and round down (Math.floor) to keep integer points.
+ * HALF: divide by 2, round to 2 decimal places (e.g. 25 -> 12.5).
  * NORMAL: no change (100%)
  * DOUBLE: multiply by 2 (200%)
  */
@@ -56,7 +56,7 @@ export function applyMultiplier(
   }
 
   if (multiplier === PointsMultiplier.HALF) {
-    return Math.floor(points / 2);
+    return Math.round((points / 2) * 100) / 100;
   }
 
   if (multiplier === PointsMultiplier.DOUBLE) {

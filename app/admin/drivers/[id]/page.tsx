@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
-
-type SessionType = "QUALIFYING" | "RACE" | "FINAL_QUALIFYING" | "FINAL_RACE";
+import { getSessionDisplayName } from "@/lib/session-utils";
+import { formatPoints } from "@/lib/format-points";
 
 interface PerformanceSession {
   sessionId: string;
@@ -48,21 +48,6 @@ interface PerformanceDriver {
 interface PerformanceResponse {
   driver: PerformanceDriver;
   championships: PerformanceChampionship[];
-}
-
-function formatSessionType(type: string): string {
-  switch (type) {
-    case "QUALIFYING":
-      return "Qualifying";
-    case "RACE":
-      return "Race";
-    case "FINAL_QUALIFYING":
-      return "Final Qualifying";
-    case "FINAL_RACE":
-      return "Final Race";
-    default:
-      return type;
-  }
 }
 
 function formatMultiplier(multiplier: string | null): string {
@@ -284,7 +269,7 @@ export default function DriverDetailPage() {
                               )}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                              {champ.totalPoints}
+                              {formatPoints(champ.totalPoints)}
                             </td>
                             <td className="px-4 py-2 text-sm text-gray-900 text-right">
                               {champ.roundsParticipated}
@@ -328,7 +313,7 @@ export default function DriverDetailPage() {
                                     {round.roundName}
                                   </Link>
                                   <span className="text-sm text-gray-600 shrink-0">
-                                    {round.trackName} · {round.roundPoints} pts
+                                    {round.trackName} · {formatPoints(round.roundPoints)} pts
                                   </span>
                                   <button
                                     type="button"
@@ -355,12 +340,6 @@ export default function DriverDetailPage() {
                                           </th>
                                           <th
                                             scope="col"
-                                            className="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase"
-                                          >
-                                            Group
-                                          </th>
-                                          <th
-                                            scope="col"
                                             className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
                                           >
                                             Position
@@ -380,24 +359,24 @@ export default function DriverDetailPage() {
                                         </tr>
                                       </thead>
                                       <tbody className="divide-y divide-gray-200">
-                                        {round.sessions.map((session, idx) => (
+                                        {round.sessions.map((session) => (
                                           <tr key={session.sessionId}>
                                             <td className="px-3 py-1.5 text-sm">
                                               <Link
                                                 href={`/admin/sessions/${session.sessionId}`}
                                                 className="text-gray-900 hover:underline"
                                               >
-                                                {formatSessionType(session.sessionType)}
+                                                {getSessionDisplayName(
+                                                  session.sessionType,
+                                                  session.group
+                                                )}
                                               </Link>
-                                            </td>
-                                            <td className="px-3 py-1.5 text-sm text-gray-900">
-                                              {session.group ?? "—"}
                                             </td>
                                             <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
                                               {session.position}
                                             </td>
                                             <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
-                                              {session.points}
+                                              {formatPoints(session.points)}
                                             </td>
                                             <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
                                               {formatMultiplier(session.multiplier)}

@@ -31,14 +31,20 @@ export async function GET(
       orderBy: { order: "asc" },
     });
 
-    const sessionsWithStatus = sessions.map((session) => ({
-      id: session.id,
-      type: session.type,
-      group: session.group,
-      order: session.order,
-      pointsMultiplier: session.pointsMultiplier,
-      hasResults: session.results.length > 0,
-    }));
+    const isLegacyGroupFinal = (s: { type: string; group: string | null }) =>
+      (s.type === "FINAL_QUALIFYING" || s.type === "FINAL_RACE") &&
+      s.group !== null;
+
+    const sessionsWithStatus = sessions
+      .filter((s) => !isLegacyGroupFinal(s))
+      .map((session) => ({
+        id: session.id,
+        type: session.type,
+        group: session.group,
+        order: session.order,
+        pointsMultiplier: session.pointsMultiplier,
+        hasResults: session.results.length > 0,
+      }));
 
     return NextResponse.json(sessionsWithStatus);
   } catch (error) {

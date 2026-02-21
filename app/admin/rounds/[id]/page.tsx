@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
+import { getSessionDisplayName } from "@/lib/session-utils";
 
 interface Track {
   id: string;
@@ -538,22 +539,11 @@ export default function RoundDetailPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {sessions.map((session) => {
-                      const getSessionName = () => {
-                        if (session.type === "QUALIFYING") {
-                          return `Qualifying ${session.order}`;
-                        }
-                        if (session.type === "RACE") {
-                          return `Group ${session.group} Race`;
-                        }
-                        if (session.type === "FINAL_QUALIFYING") {
-                          return "Final Qualifying";
-                        }
-                        if (session.type === "FINAL_RACE") {
-                          return "Final Race";
-                        }
-                        return session.type.replace(/_/g, " ");
-                      };
-
+                      const sessionName = getSessionDisplayName(
+                        session.type,
+                        session.group,
+                        session.order
+                      );
                       const isRaceSession = session.type === "RACE" || session.type === "FINAL_RACE";
 
                       return (
@@ -563,7 +553,7 @@ export default function RoundDetailPage() {
                               onClick={() => router.push(`/admin/sessions/${session.id}`)}
                               className="text-blue-600 hover:text-blue-800 hover:underline"
                             >
-                              {getSessionName()}
+                              {sessionName}
                             </button>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-500">

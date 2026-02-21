@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { formatPoints } from '@/lib/format-points';
 
 const ALL_DRIVERS = [
   { id: 'max-verstappen', name: 'Max Verstappen', team: 'Red Bull Racing', number: '1', points: 406, color: 'bg-red-600', accent: 'border-red-500' },
@@ -72,7 +73,7 @@ const AllDrivers = () => {
                   <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
                     <div>
                       <span className="text-[10px] uppercase text-gray-400 font-bold">Points</span>
-                      <p className="text-xl font-mono font-bold text-gray-900">{driver.points}</p>
+                      <p className="text-xl font-mono font-bold text-gray-900">{formatPoints(driver.points)}</p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>

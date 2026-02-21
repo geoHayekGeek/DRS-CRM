@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SessionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
   calculateSessionPoints,
   SessionType,
   PointsMultiplier,
 } from "@/lib/points";
+import { getFinalQualifyingDrivers } from "@/lib/final-qualifying";
+import { getFinalRaceDrivers } from "@/lib/final-race";
 
 export async function PUT(
   request: NextRequest,
@@ -30,28 +33,45 @@ export async function PUT(
       );
     }
 
-    // Get eligible drivers for this session
     let eligibleDriverIds: string[] = [];
 
-    if (session.group) {
+    if (session.type === "FINAL_QUALIFYING" && session.group === null) {
+      const fqCheck = await getFinalQualifyingDrivers(session.roundId);
+      if (!fqCheck.ready) {
+        return NextResponse.json(
+          {
+            error:
+              "Final Qualifying is waiting for qualifying results to determine drivers.",
+          },
+          { status: 400 }
+        );
+      }
+      eligibleDriverIds = fqCheck.drivers.map((d) => d.id);
+    } else if (session.type === "FINAL_RACE" && session.group === null) {
+      const frCheck = await getFinalRaceDrivers(session.roundId);
+      if (!frCheck.ready) {
+        return NextResponse.json(
+          {
+            error:
+              "Final Race is waiting for final qualifying to determine grid.",
+          },
+          { status: 400 }
+        );
+      }
+      eligibleDriverIds = frCheck.drivers.map((d) => d.id);
+    } else if (session.group) {
       const groupAssignments = await db.groupAssignment.findMany({
         where: {
           roundId: session.roundId,
           group: session.group,
         },
-        select: {
-          driverId: true,
-        },
+        select: { driverId: true },
       });
       eligibleDriverIds = groupAssignments.map((a) => a.driverId);
     } else {
       const groupAssignments = await db.groupAssignment.findMany({
-        where: {
-          roundId: session.roundId,
-        },
-        select: {
-          driverId: true,
-        },
+        where: { roundId: session.roundId },
+        select: { driverId: true },
       });
       eligibleDriverIds = groupAssignments.map((a) => a.driverId);
     }
@@ -128,21 +148,23 @@ export async function PUT(
 
     // Use transaction to ensure consistency
     const savedResults = await db.$transaction(async (tx) => {
-      // Update session multiplier if it's a race session
+      const sessionUpdateData: { pointsMultiplier?: PointsMultiplier | null; status?: SessionStatus } =
+        {};
       if (isRaceSession) {
-        await tx.session.update({
-          where: { id: sessionId },
-          data: {
-            pointsMultiplier: pointsMultiplier as PointsMultiplier,
-          },
-        });
+        sessionUpdateData.pointsMultiplier = pointsMultiplier as PointsMultiplier;
       } else if (isQualifyingSession) {
-        // Ensure qualifying sessions have null multiplier
+        sessionUpdateData.pointsMultiplier = null;
+      }
+      if (
+        session.type === "FINAL_QUALIFYING" ||
+        session.type === "FINAL_RACE"
+      ) {
+        sessionUpdateData.status = SessionStatus.COMPLETED;
+      }
+      if (Object.keys(sessionUpdateData).length > 0) {
         await tx.session.update({
           where: { id: sessionId },
-          data: {
-            pointsMultiplier: null,
-          },
+          data: sessionUpdateData,
         });
       }
 

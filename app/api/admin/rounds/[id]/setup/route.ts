@@ -110,15 +110,14 @@ export async function POST(
       const sessions: Prisma.SessionCreateManyInput[] = [];
       let order = 1;
 
-      for (let i = 1; i <= 4; i++) {
+      for (const group of groupLabels) {
         sessions.push({
           roundId,
           type: "QUALIFYING",
-          group: null,
+          group,
           order: order++,
         });
       }
-
       for (const group of groupLabels) {
         sessions.push({
           roundId,
@@ -133,6 +132,7 @@ export async function POST(
         type: "FINAL_QUALIFYING",
         group: null,
         order: order++,
+        status: "PENDING",
       });
 
       sessions.push({
@@ -140,6 +140,7 @@ export async function POST(
         type: "FINAL_RACE",
         group: null,
         order: order++,
+        status: "PENDING",
       });
 
       await tx.session.createMany({

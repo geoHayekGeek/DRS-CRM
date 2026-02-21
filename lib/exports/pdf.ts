@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
 import type { ExportSessionBlock } from "./types";
+import { formatPoints } from "@/lib/format-points";
 
 type PDFDoc = InstanceType<typeof PDFDocument>;
 
@@ -115,7 +116,7 @@ function writeSessionBlock(
       width: RES_COL_WIDTHS[2] - 8,
     });
     cx += RES_COL_WIDTHS[2];
-    doc.text(String(row.points), cx + 4, rowY, {
+    doc.text(formatPoints(row.points), cx + 4, rowY, {
       width: RES_COL_WIDTHS[3] - 8,
     });
   });

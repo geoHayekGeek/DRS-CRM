@@ -2,6 +2,8 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { getSessionDisplayName } from "@/lib/session-utils";
+import { formatPoints } from "@/lib/format-points";
 
 type DriverPublic = {
   fullName: string;
@@ -51,21 +53,6 @@ async function getDriver(id: string): Promise<DriverResponse | null> {
   if (res.status === 404) return null;
   if (!res.ok) return null;
   return res.json();
-}
-
-function formatSessionType(type: string): string {
-  switch (type) {
-    case "QUALIFYING":
-      return "Qualifying";
-    case "RACE":
-      return "Race";
-    case "FINAL_QUALIFYING":
-      return "Final Qualifying";
-    case "FINAL_RACE":
-      return "Final Race";
-    default:
-      return type;
-  }
 }
 
 function formatMultiplier(multiplier: string | null): string {
@@ -194,7 +181,7 @@ export default async function DriverPage({
                         <span className="font-medium text-gray-500">
                           Total points:
                         </span>{" "}
-                        {champ.totalPoints}
+                        {formatPoints(champ.totalPoints)}
                       </p>
                       {champ.positionInChampionship != null && (
                         <p className="text-gray-700">
@@ -216,14 +203,14 @@ export default async function DriverPage({
                             {round.roundName} – {round.trackName}
                           </p>
                           <p className="text-sm text-gray-500 mb-2">
-                            Round points: {round.roundPoints}
+                            Round points: {formatPoints(round.roundPoints)}
                           </p>
                           <ul className="space-y-1 text-sm text-gray-700">
                             {round.sessions.map((s, i) => (
                               <li key={i}>
-                                {formatSessionType(s.sessionType)}
-                                {s.group ? ` (${s.group})` : ""}: P{s.position}{" "}
-                                – {s.points} pts{" "}
+                                {getSessionDisplayName(s.sessionType, s.group)}: P
+                                {s.position}{" "}
+                                – {formatPoints(s.points)} pts{" "}
                                 {s.multiplier &&
                                   s.multiplier !== "NORMAL" &&
                                   `(${formatMultiplier(s.multiplier)})`}

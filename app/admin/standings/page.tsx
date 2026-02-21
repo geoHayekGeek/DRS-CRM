@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
+import { formatPoints } from "@/lib/format-points";
 
 interface Championship {
   id: string;
@@ -199,7 +200,7 @@ function StandingsContent() {
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        {standing.totalPoints}
+                        {formatPoints(standing.totalPoints)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {standing.pointsByRound.length > 0 && (
@@ -242,7 +243,7 @@ function StandingsContent() {
                                     <tr key={pr.roundId} className="border-b border-gray-100">
                                       <td className="py-1.5 text-gray-700">{pr.roundName}</td>
                                       <td className="py-1.5 text-right text-gray-600">
-                                        {pr.points}
+                                        {formatPoints(pr.points)}
                                       </td>
                                     </tr>
                                   ))}

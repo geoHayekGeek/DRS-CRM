@@ -9,12 +9,14 @@ import {
   SessionType,
   PointsMultiplier,
 } from "@/lib/points";
+import { getSessionDisplayName } from "@/lib/session-utils";
+import { formatPoints } from "@/lib/format-points";
 
 interface Driver {
   id: string;
   fullName: string;
   group: string;
-  kartNumber: number;
+  kartNumber?: number;
   result: {
     position: number;
     points: number;
@@ -27,6 +29,7 @@ interface SessionData {
     type: string;
     group: string | null;
     order: number;
+    status?: string;
     pointsMultiplier: string | null;
   };
   round: {
@@ -58,6 +61,7 @@ export default function SessionResultsPage() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState<string>("NORMAL");
   const [positions, setPositions] = useState<Record<string, number>>({});
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     fetchSessionData();
@@ -113,20 +117,7 @@ export default function SessionResultsPage() {
   const getSessionName = () => {
     if (!sessionData) return "";
     const session = sessionData.session;
-
-    if (session.type === "QUALIFYING") {
-      return `Qualifying ${session.order}`;
-    }
-    if (session.type === "RACE") {
-      return `Group ${session.group} Race`;
-    }
-    if (session.type === "FINAL_QUALIFYING") {
-      return "Final Qualifying";
-    }
-    if (session.type === "FINAL_RACE") {
-      return "Final Race";
-    }
-    return "Session";
+    return getSessionDisplayName(session.type, session.group, session.order);
   };
 
   const getPreviewPoints = (driverId: string, position: number): number => {
@@ -259,6 +250,38 @@ export default function SessionResultsPage() {
     sessionData.session.type === "FINAL_RACE";
 
   const hasResults = sessionData.drivers.some((d) => d.result != null);
+  const isFinalQualifying =
+    sessionData.session.type === "FINAL_QUALIFYING" &&
+    sessionData.session.group === null;
+  const isFinalRace =
+    sessionData.session.type === "FINAL_RACE" &&
+    sessionData.session.group === null;
+  const isPending = sessionData.session.status === "PENDING";
+  const pendingMessage = isFinalQualifying
+    ? "Final Qualifying is waiting for qualifying results to determine drivers."
+    : isFinalRace
+    ? "Final Race is waiting for final qualifying to determine grid."
+    : "Waiting for prerequisites.";
+
+  const handleRegenerate = async () => {
+    try {
+      setRegenerating(true);
+      const res = await fetch(`/api/admin/sessions/${id}/regenerate`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || "Regenerate failed");
+        return;
+      }
+      toast.success(data.message || "Regenerated");
+      await fetchSessionData();
+    } catch {
+      toast.error("Regenerate failed");
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const handleExport = async (format: "pdf" | "xlsx") => {
     try {
@@ -317,7 +340,26 @@ export default function SessionResultsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          {isPending ? (
+            <div className="py-12 text-center">
+              <p className="text-gray-600 font-medium">{pendingMessage}</p>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {isFinalQualifying &&
+              (sessionData.session.status === "READY" ||
+                sessionData.session.status === "COMPLETED") && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleRegenerate}
+                  disabled={regenerating}
+                  className="text-sm px-3 py-2 border border-amber-500 text-amber-700 font-medium rounded hover:bg-amber-50 disabled:opacity-50"
+                >
+                  {regenerating ? "Regenerating..." : "Regenerate Final Qualifying"}
+                </button>
+              </div>
+            )}
             {isRaceSession && (
               <div>
                 <label htmlFor="pointsMultiplier" className="block text-sm font-medium text-gray-700 mb-2">
@@ -405,7 +447,7 @@ export default function SessionResultsPage() {
                           {driver.group}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">
-                          {driver.kartNumber}
+                          {driver.kartNumber ?? "—"}
                         </td>
                         <td className="px-4 py-3">
                           <input
@@ -428,7 +470,9 @@ export default function SessionResultsPage() {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">
                           {positions[driver.id]
-                            ? getPreviewPoints(driver.id, positions[driver.id])
+                            ? formatPoints(
+                                getPreviewPoints(driver.id, positions[driver.id])
+                              )
                             : "—"}
                         </td>
                       </tr>
@@ -470,6 +514,7 @@ export default function SessionResultsPage() {
               </button>
             </div>
           </form>
+          )}
         </div>
       </div>
     </div>

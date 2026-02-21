@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { formatPoints } from '@/lib/format-points';
 
 export type FeaturedChampionship = {
   id: string;
@@ -77,7 +78,7 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
                             {index + 1}
                           </td>
                           <td className="px-6 py-4 font-medium text-gray-900 text-center">{row.fullName}</td>
-                          <td className="px-6 py-4 font-bold text-black text-center">{row.totalPoints}</td>
+                          <td className="px-6 py-4 font-bold text-black text-center">{formatPoints(row.totalPoints)}</td>
                         </tr>
                       ))}
                     </tbody>
