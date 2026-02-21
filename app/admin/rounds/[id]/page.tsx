@@ -48,6 +48,7 @@ interface Session {
   type: string;
   group: string | null;
   order: number;
+  status?: string;
   hasResults: boolean;
   pointsMultiplier: string | null;
 }
@@ -224,6 +225,11 @@ export default function RoundDetailPage() {
   };
 
   const roundHasResults = sessions.some((s) => s.hasResults);
+  const roundStatus =
+    sessions.length > 0 &&
+    sessions.every((s) => s.status === "COMPLETED" || s.hasResults)
+      ? "COMPLETED"
+      : "IN_PROGRESS";
   const roundDriverCount = round?._count?.roundDrivers ?? 0;
   const canSetup = !round?.setupCompleted && roundDriverCount > 0;
 
@@ -286,6 +292,14 @@ export default function RoundDetailPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
       <div className="w-full max-w-4xl mx-auto">
+        {roundStatus === "COMPLETED" ? (
+          <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
+            <p className="text-sm font-medium text-green-800">This round has been completed.</p>
+          </div>
+        ) : (
+          <p className="mb-6 text-sm text-gray-500">Round in progress.</p>
+        )}
+
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
           <h1
             className="text-2xl sm:text-3xl font-heading font-semibold break-words"

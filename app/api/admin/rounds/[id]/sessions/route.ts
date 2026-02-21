@@ -43,6 +43,7 @@ export async function GET(
         group: session.group,
         order: session.order,
         pointsMultiplier: session.pointsMultiplier,
+        status: session.status,
         hasResults: session.results.length > 0,
       }));
 

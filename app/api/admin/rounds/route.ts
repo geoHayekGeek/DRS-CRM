@@ -13,11 +13,38 @@ export async function GET() {
             isCurrent: true,
           },
         },
+        sessions: {
+          select: {
+            type: true,
+            group: true,
+            status: true,
+            results: { select: { id: true } },
+          },
+          orderBy: { order: "asc" },
+        },
       },
       orderBy: { date: "desc" },
     });
 
-    return NextResponse.json(rounds);
+    const isLegacyGroupFinal = (s: { type: string; group: string | null }) =>
+      (s.type === "FINAL_QUALIFYING" || s.type === "FINAL_RACE") && s.group !== null;
+
+    const isSessionComplete = (
+      s: { status: string; results: { id: string }[] }
+    ) => s.status === "COMPLETED" || s.results.length > 0;
+
+    const roundsWithStatus = rounds.map((r) => {
+      const relevantSessions = r.sessions.filter((s) => !isLegacyGroupFinal(s));
+      const roundStatus =
+        relevantSessions.length > 0 &&
+        relevantSessions.every((s) => isSessionComplete(s))
+          ? "COMPLETED"
+          : "IN_PROGRESS";
+      const { sessions, ...rest } = r;
+      return { ...rest, roundStatus };
+    });
+
+    return NextResponse.json(roundsWithStatus);
   } catch (error) {
     console.error("Error fetching rounds:", error);
     return NextResponse.json(

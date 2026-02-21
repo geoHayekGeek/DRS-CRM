@@ -155,12 +155,8 @@ export async function PUT(
       } else if (isQualifyingSession) {
         sessionUpdateData.pointsMultiplier = null;
       }
-      if (
-        session.type === "FINAL_QUALIFYING" ||
-        session.type === "FINAL_RACE"
-      ) {
-        sessionUpdateData.status = SessionStatus.COMPLETED;
-      }
+      // Any session with saved results is completed
+      sessionUpdateData.status = SessionStatus.COMPLETED;
       if (Object.keys(sessionUpdateData).length > 0) {
         await tx.session.update({
           where: { id: sessionId },
