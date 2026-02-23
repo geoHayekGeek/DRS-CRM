@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+const RACE_TYPES = ["RACE", "FINAL_RACE"];
+const QUALIFYING_TYPES = ["QUALIFYING", "FINAL_QUALIFYING"];
+
+function isRaceType(type: string): boolean {
+  return RACE_TYPES.includes(type);
+}
+function isQualifyingType(type: string): boolean {
+  return QUALIFYING_TYPES.includes(type);
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
@@ -116,6 +126,9 @@ export async function GET(
       roundName: string;
       trackName: string;
       roundPoints: number;
+      wins: number;
+      podiums: number;
+      polePositions: number;
       sessions: {
         sessionId: string;
         sessionType: string;
@@ -126,6 +139,13 @@ export async function GET(
       }[];
     };
 
+    const careerStats = {
+      totalPoints: 0,
+      wins: 0,
+      podiums: 0,
+      polePositions: 0,
+    };
+
     const roundMap = new Map<string, RoundEntry>();
     const championshipMap = new Map<
       string,
@@ -134,6 +154,9 @@ export async function GET(
         championshipName: string;
         totalPoints: number;
         positionInChampionship: number | null;
+        wins: number;
+        podiums: number;
+        polePositions: number;
         rounds: RoundEntry[];
       }
     >();
@@ -168,6 +191,9 @@ export async function GET(
           roundName,
           trackName,
           roundPoints: 0,
+          wins: 0,
+          podiums: 0,
+          polePositions: 0,
           sessions: [],
         });
       }
@@ -182,6 +208,20 @@ export async function GET(
         multiplier,
       });
 
+      if (isRaceType(sessionType)) {
+        if (position === 1) {
+          careerStats.wins += 1;
+          roundEntry.wins += 1;
+        }
+        if (position >= 1 && position <= 3) {
+          careerStats.podiums += 1;
+          roundEntry.podiums += 1;
+        }
+      } else if (isQualifyingType(sessionType) && position === 1) {
+        careerStats.polePositions += 1;
+        roundEntry.polePositions += 1;
+      }
+
       if (!championshipMap.has(championshipId)) {
         championshipMap.set(championshipId, {
           championshipId: championshipId === "none" ? "" : championshipId,
@@ -191,11 +231,21 @@ export async function GET(
             championshipId !== "none"
               ? positionByChampionship.get(championshipId) ?? null
               : null,
+          wins: 0,
+          podiums: 0,
+          polePositions: 0,
           rounds: [],
         });
       }
       const champEntry = championshipMap.get(championshipId)!;
       champEntry.totalPoints += points;
+      careerStats.totalPoints += points;
+      if (isRaceType(sessionType)) {
+        if (position === 1) champEntry.wins += 1;
+        if (position >= 1 && position <= 3) champEntry.podiums += 1;
+      } else if (isQualifyingType(sessionType) && position === 1) {
+        champEntry.polePositions += 1;
+      }
     }
 
     const roundIdToChampionship = new Map<string, string>();
@@ -235,6 +285,9 @@ export async function GET(
           totalPoints: entry.totalPoints,
           roundsParticipated: rounds.length,
           positionInChampionship: entry.positionInChampionship,
+          wins: entry.wins,
+          podiums: entry.podiums,
+          polePositions: entry.polePositions,
           rounds,
         };
       }
@@ -256,6 +309,12 @@ export async function GET(
         notes: driver.notes,
         createdAt: driver.createdAt,
         updatedAt: driver.updatedAt,
+      },
+      careerOverview: {
+        totalPoints: careerStats.totalPoints,
+        wins: careerStats.wins,
+        podiums: careerStats.podiums,
+        polePositions: careerStats.polePositions,
       },
       championships,
     });

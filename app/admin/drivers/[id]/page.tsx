@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { Trophy, Medal, Flag, CircleDollarSign, ChevronDown, ChevronUp } from "lucide-react";
 import { theme } from "@/lib/theme";
 import { getSessionDisplayName } from "@/lib/session-utils";
 import { formatPoints } from "@/lib/format-points";
@@ -22,6 +23,9 @@ interface PerformanceRound {
   roundName: string;
   trackName: string;
   roundPoints: number;
+  wins: number;
+  podiums: number;
+  polePositions: number;
   sessions: PerformanceSession[];
 }
 
@@ -31,7 +35,17 @@ interface PerformanceChampionship {
   totalPoints: number;
   roundsParticipated: number;
   positionInChampionship: number | null;
+  wins: number;
+  podiums: number;
+  polePositions: number;
   rounds: PerformanceRound[];
+}
+
+interface CareerOverview {
+  totalPoints: number;
+  wins: number;
+  podiums: number;
+  polePositions: number;
 }
 
 interface PerformanceDriver {
@@ -47,6 +61,7 @@ interface PerformanceDriver {
 
 interface PerformanceResponse {
   driver: PerformanceDriver;
+  careerOverview?: CareerOverview;
   championships: PerformanceChampionship[];
 }
 
@@ -138,8 +153,25 @@ export default function DriverDetailPage() {
     );
   }
 
-  const { driver, championships } = data;
+  const { driver, careerOverview, championships } = data;
   const hasResults = championships.length > 0;
+  const career = careerOverview ?? {
+    totalPoints: 0,
+    wins: 0,
+    podiums: 0,
+    polePositions: 0,
+  };
+
+  const statCards = [
+    {
+      label: "Total Points",
+      value: formatPoints(career.totalPoints),
+      icon: CircleDollarSign,
+    },
+    { label: "Wins", value: String(career.wins), icon: Trophy },
+    { label: "Podiums", value: String(career.podiums), icon: Medal },
+    { label: "Pole Positions", value: String(career.polePositions), icon: Flag },
+  ];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
@@ -213,186 +245,227 @@ export default function DriverDetailPage() {
               Performance Breakdown
             </h2>
             {!hasResults ? (
-              <p className="text-sm text-gray-500">
-                This driver has not participated in any sessions yet.
-              </p>
-            ) : (
-              <div className="space-y-8">
-                {/* 4.1 Championship Summary */}
-                <section>
-                  <h3 className="text-base font-heading font-semibold text-gray-800 mb-3">
-                    Championship Summary
+              <>
+                <section className="mb-8" aria-label="Career overview">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                    Career Overview (All Time)
                   </h3>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
-                    <table className="min-w-full divide-y divide-gray-200 min-w-[400px]">
-                      <thead>
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Championship
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Total points
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Rounds participated
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Position
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {championships.map((champ) => (
-                          <tr key={champ.championshipId || champ.championshipName}>
-                            <td className="px-4 py-2 text-sm whitespace-nowrap">
-                              {champ.championshipId ? (
-                                <Link
-                                  href={`/admin/standings?championshipId=${champ.championshipId}`}
-                                  className="text-gray-900 hover:underline"
-                                >
-                                  {champ.championshipName}
-                                </Link>
-                              ) : (
-                                <span className="text-gray-900">{champ.championshipName}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                              {formatPoints(champ.totalPoints)}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                              {champ.roundsParticipated}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900 text-right">
-                              {champ.positionInChampionship != null
-                                ? champ.positionInChampionship
-                                : "—"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-                {/* 4.2 Round Breakdown + 4.3 Session History (expand/collapse) */}
-                <section>
-                  <h3 className="text-base font-heading font-semibold text-gray-800 mb-3">
-                    Round Breakdown
-                  </h3>
-                  <div className="space-y-2">
-                    {championships.map((champ) => (
-                      <div key={champ.championshipId || champ.championshipName}>
-                        <div className="text-sm font-medium text-gray-700 mb-2">
-                          {champ.championshipName}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {statCards.map(({ label, value, icon: Icon }) => (
+                      <div
+                        key={label}
+                        className="rounded-lg border border-gray-200 bg-gray-50/50 p-3 flex items-center gap-3"
+                      >
+                        <div
+                          className="shrink-0 w-9 h-9 rounded-md flex items-center justify-center text-gray-400"
+                          style={{ backgroundColor: theme.colors.neutral.gray200 }}
+                        >
+                          <Icon className="w-4 h-4" strokeWidth={2} />
                         </div>
-                        <div className="border border-gray-200 rounded-lg overflow-hidden">
-                          {champ.rounds.map((round) => {
-                            const isExpanded = expandedRounds.has(round.roundId);
-                            return (
-                              <div
-                                key={round.roundId}
-                                className="border-b border-gray-200 last:border-b-0"
-                              >
-                                <div className="px-4 py-3 flex items-center justify-between gap-2 hover:bg-gray-50 transition-colors">
-                                  <Link
-                                    href={`/admin/rounds/${round.roundId}`}
-                                    className="text-sm font-medium text-gray-900 hover:underline flex-1 min-w-0"
-                                  >
-                                    {round.roundName}
-                                  </Link>
-                                  <span className="text-sm text-gray-600 shrink-0">
-                                    {round.trackName} · {formatPoints(round.roundPoints)} pts
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleRound(round.roundId)}
-                                    className="shrink-0 text-gray-500 text-sm p-1 hover:text-gray-700"
-                                    aria-label={isExpanded ? "Collapse" : "Expand"}
-                                  >
-                                    {isExpanded ? "−" : "+"}
-                                  </button>
-                                </div>
-                                {isExpanded && (
-                                  <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-                                    <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                                      Session History
-                                    </h4>
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                      <thead>
-                                        <tr>
-                                          <th
-                                            scope="col"
-                                            className="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase"
-                                          >
-                                            Session
-                                          </th>
-                                          <th
-                                            scope="col"
-                                            className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
-                                          >
-                                            Position
-                                          </th>
-                                          <th
-                                            scope="col"
-                                            className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
-                                          >
-                                            Points
-                                          </th>
-                                          <th
-                                            scope="col"
-                                            className="px-3 py-1.5 text-right text-xs font-medium text-gray-500 uppercase"
-                                          >
-                                            Multiplier
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody className="divide-y divide-gray-200">
-                                        {round.sessions.map((session) => (
-                                          <tr key={session.sessionId}>
-                                            <td className="px-3 py-1.5 text-sm">
-                                              <Link
-                                                href={`/admin/sessions/${session.sessionId}`}
-                                                className="text-gray-900 hover:underline"
-                                              >
-                                                {getSessionDisplayName(
-                                                  session.sessionType,
-                                                  session.group
-                                                )}
-                                              </Link>
-                                            </td>
-                                            <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
-                                              {session.position}
-                                            </td>
-                                            <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
-                                              {formatPoints(session.points)}
-                                            </td>
-                                            <td className="px-3 py-1.5 text-sm text-gray-900 text-right">
-                                              {formatMultiplier(session.multiplier)}
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-500 truncate">{label}</p>
+                          <p className="text-lg font-semibold text-gray-900 tabular-nums">{value}</p>
                         </div>
                       </div>
                     ))}
+                  </div>
+                </section>
+                <p className="text-sm text-gray-500">
+                  This driver has not participated in any sessions yet.
+                </p>
+              </>
+            ) : (
+              <div className="space-y-8">
+                {/* Section 1 — Career Overview */}
+                <section aria-label="Career overview">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                    Career Overview (All Time)
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {statCards.map(({ label, value, icon: Icon }) => (
+                      <div
+                        key={label}
+                        className="rounded-lg border border-gray-200 bg-gray-50/50 p-3 flex items-center gap-3"
+                      >
+                        <div
+                          className="shrink-0 w-9 h-9 rounded-md flex items-center justify-center text-gray-400"
+                          style={{ backgroundColor: theme.colors.neutral.gray200 }}
+                        >
+                          <Icon className="w-4 h-4" strokeWidth={2} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-500 truncate">{label}</p>
+                          <p className="text-lg font-semibold text-gray-900 tabular-nums">{value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Section 2 — Per Championship Breakdown */}
+                <section aria-label="Per championship breakdown">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                    Per Championship
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {championships.map((champ) => (
+                      <div
+                        key={champ.championshipId || champ.championshipName}
+                        className="rounded-lg border border-gray-200 bg-white p-4 hover:border-gray-300 transition-colors"
+                      >
+                        <div className="mb-3">
+                          {champ.championshipId ? (
+                            <Link
+                              href={`/admin/standings?championshipId=${champ.championshipId}`}
+                              className="text-base font-semibold text-gray-900 hover:underline"
+                            >
+                              {champ.championshipName}
+                            </Link>
+                          ) : (
+                            <span className="text-base font-semibold text-gray-900">
+                              {champ.championshipName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                          <span className="text-gray-500">Points</span>
+                          <span className="text-gray-900 font-medium text-right tabular-nums">
+                            {formatPoints(champ.totalPoints)}
+                          </span>
+                          <span className="text-gray-500">Position</span>
+                          <span className="text-gray-900 font-medium text-right tabular-nums">
+                            {champ.positionInChampionship != null
+                              ? champ.positionInChampionship
+                              : "—"}
+                          </span>
+                          <span className="text-gray-500">Wins</span>
+                          <span className="text-gray-900 font-medium text-right tabular-nums">
+                            {champ.wins ?? 0}
+                          </span>
+                          <span className="text-gray-500">Podiums</span>
+                          <span className="text-gray-900 font-medium text-right tabular-nums">
+                            {champ.podiums ?? 0}
+                          </span>
+                          <span className="text-gray-500">Poles</span>
+                          <span className="text-gray-900 font-medium text-right tabular-nums">
+                            {champ.polePositions ?? 0}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Section 3 — Per Round Breakdown (accordion) */}
+                <section aria-label="Per round breakdown">
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                    Per Round
+                  </h3>
+                  <div className="space-y-2">
+                    {championships.map((champ) =>
+                      champ.rounds.map((round) => {
+                        const isExpanded = expandedRounds.has(round.roundId);
+                        const wins = round.wins ?? 0;
+                        const podiums = round.podiums ?? 0;
+                        const poles = round.polePositions ?? 0;
+                        return (
+                          <div
+                            key={round.roundId}
+                            className="rounded-lg border border-gray-200 overflow-hidden bg-white"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => toggleRound(round.roundId)}
+                              className="w-full px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-left hover:bg-gray-50 transition-colors"
+                            >
+                              <span className="font-medium text-gray-900">{round.roundName}</span>
+                              <span className="text-sm text-gray-600">
+                                {round.trackName} · {formatPoints(round.roundPoints)} pts
+                              </span>
+                              <span className="shrink-0 text-gray-400">
+                                {isExpanded ? (
+                                  <ChevronUp className="w-5 h-5" />
+                                ) : (
+                                  <ChevronDown className="w-5 h-5" />
+                                )}
+                              </span>
+                            </button>
+                            {isExpanded && (
+                              <div className="border-t border-gray-200 bg-gray-50/50 px-4 py-3">
+                                <div className="flex flex-wrap gap-4 mb-3 text-sm">
+                                  <span className="text-gray-600">
+                                    <span className="font-medium text-gray-900">{wins}</span> Wins
+                                  </span>
+                                  <span className="text-gray-600">
+                                    <span className="font-medium text-gray-900">{podiums}</span>{" "}
+                                    Podiums
+                                  </span>
+                                  <span className="text-gray-600">
+                                    <span className="font-medium text-gray-900">{poles}</span> Poles
+                                  </span>
+                                </div>
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead>
+                                    <tr>
+                                      <th
+                                        scope="col"
+                                        className="py-1.5 pr-3 text-left text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Session
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="py-1.5 px-2 text-right text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Position
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="py-1.5 px-2 text-right text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Points
+                                      </th>
+                                      <th
+                                        scope="col"
+                                        className="py-1.5 pl-2 text-right text-xs font-medium text-gray-500 uppercase"
+                                      >
+                                        Multiplier
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-200">
+                                    {round.sessions.map((session) => (
+                                      <tr key={session.sessionId}>
+                                        <td className="py-1.5 pr-3 text-sm">
+                                          <Link
+                                            href={`/admin/sessions/${session.sessionId}`}
+                                            className="text-gray-900 hover:underline"
+                                          >
+                                            {getSessionDisplayName(
+                                              session.sessionType,
+                                              session.group
+                                            )}
+                                          </Link>
+                                        </td>
+                                        <td className="py-1.5 px-2 text-sm text-gray-900 text-right tabular-nums">
+                                          {session.position}
+                                        </td>
+                                        <td className="py-1.5 px-2 text-sm text-gray-900 text-right tabular-nums">
+                                          {formatPoints(session.points)}
+                                        </td>
+                                        <td className="py-1.5 pl-2 text-sm text-gray-900 text-right">
+                                          {formatMultiplier(session.multiplier)}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </section>
               </div>
