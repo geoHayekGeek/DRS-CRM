@@ -121,6 +121,7 @@ export async function GET(
       const entry = driverMap.get(driverId)!;
       entry.basePoints += result.points;
 
+      // Wins and podiums: only from RACE sessions (not qualifying)
       if (isRaceType(sessionType)) {
         if (result.position === 1) entry.wins += 1;
         if (result.position >= 1 && result.position <= 3) entry.podiums += 1;

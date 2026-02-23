@@ -232,6 +232,7 @@ export async function GET(
         points,
       });
 
+      // Wins and podiums: only from RACE sessions (not qualifying)
       if (isRaceType(sessionType)) {
         if (position === 1) {
           careerStats.wins += 1;
@@ -263,6 +264,7 @@ export async function GET(
       const champEntry = championshipMap.get(championshipId)!;
       champEntry.totalPoints += points;
       careerStats.totalPoints += points;
+      // Podiums: only from RACE sessions (not qualifying)
       if (isRaceType(sessionType)) {
         if (position === 1) champEntry.wins += 1;
         if (position >= 1 && position <= 3) champEntry.podiums += 1;
