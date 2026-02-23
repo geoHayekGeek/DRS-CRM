@@ -243,8 +243,8 @@ export async function GET(
           roundEntry.podiums += 1;
         }
       } else if (isQualifyingType(sessionType) && position === 1) {
-        careerStats.polePositions += 1;
-        roundEntry.polePositions += 1;
+        careerStats.poles += 1;
+        roundEntry.poles += 1;
       }
 
       if (!championshipMap.has(championshipId)) {
@@ -269,7 +269,7 @@ export async function GET(
         if (position === 1) champEntry.wins += 1;
         if (position >= 1 && position <= 3) champEntry.podiums += 1;
       } else if (isQualifyingType(sessionType) && position === 1) {
-        champEntry.polePositions += 1;
+        champEntry.poles += 1;
       }
       if (!champEntry.roundIds.includes(roundId)) {
         champEntry.roundIds.push(roundId);
@@ -377,7 +377,7 @@ export async function GET(
           totalPoints: careerStats.totalPoints,
           wins: careerStats.wins,
           podiums: careerStats.podiums,
-          poles: careerStats.polePositions,
+          poles: careerStats.poles,
         },
         championships,
       },
