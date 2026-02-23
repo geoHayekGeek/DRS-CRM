@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
@@ -150,7 +151,37 @@ export default function ChampionshipDetailPage() {
             {championship.rounds.length === 0 ? (
               <p className="text-sm text-gray-500">No rounds have been created for this championship yet.</p>
             ) : (
-              <p className="text-sm text-gray-500">This championship contains {championship.rounds.length} round(s).</p>
+              <>
+                <p className="text-sm text-gray-500 mb-3">
+                  This championship contains {championship.rounds.length} round(s).
+                </p>
+                <ul className="space-y-2">
+                  {[...championship.rounds]
+                    .sort((a, b) => (new Date(a.date).getTime() || 0) - (new Date(b.date).getTime() || 0))
+                    .map((round) => (
+                    <li key={round.id}>
+                      <Link
+                        href={`/admin/rounds/${round.id}`}
+                        className="text-sm font-medium text-gray-900 hover:underline"
+                        style={{ color: theme.colors.primary.red }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textDecoration = "underline";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textDecoration = "";
+                        }}
+                      >
+                        {round.name}
+                        {round.date && (
+                          <span className="text-gray-500 font-normal ml-1">
+                            - {formatDate(round.date)}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         </div>
