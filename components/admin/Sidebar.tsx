@@ -99,9 +99,6 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen = false, onMob
         <SidebarLink href="/admin/rounds" collapsed={collapsed} onNavigate={onNavigate}>
           Rounds
         </SidebarLink>
-        <SidebarLink href="/admin/events" collapsed={collapsed} onNavigate={onNavigate}>
-          Events
-        </SidebarLink>
         <SidebarLink href="/admin/standings" collapsed={collapsed} onNavigate={onNavigate}>
           Standings
         </SidebarLink>
