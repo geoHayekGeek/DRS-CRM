@@ -34,20 +34,20 @@ async function getNewestDrivers() {
   }
 }
 
-async function getFeaturedEvents() {
+async function getRoundsFeed() {
   try {
     const headersList = await headers();
     const host = headersList.get("host") ?? "localhost:3000";
     const protocol = headersList.get("x-forwarded-proto") ?? "http";
     const base = `${protocol}://${host}`;
-    const res = await fetch(`${base}/api/public/events/featured`, {
+    const res = await fetch(`${base}/api/public/rounds-feed`, {
       cache: "no-store",
     });
-    if (!res.ok) return { now: new Date().toISOString(), events: [] };
+    if (!res.ok) return { rounds: [] };
     const data = await res.json();
-    return { now: data.now ?? new Date().toISOString(), events: Array.isArray(data.events) ? data.events : [] };
+    return { rounds: Array.isArray(data.rounds) ? data.rounds : [] };
   } catch {
-    return { now: new Date().toISOString(), events: [] };
+    return { rounds: [] };
   }
 }
 
@@ -64,18 +64,18 @@ async function getFeaturedChampionship() {
 }
 
 export default async function LandingPage() {
-  const [spotlightDrivers, featured, newestDrivers, featuredEvents] = await Promise.all([
+  const [spotlightDrivers, featured, newestDrivers, roundsFeed] = await Promise.all([
     getSpotlightDrivers(),
     getFeaturedChampionship(),
     getNewestDrivers(),
-    getFeaturedEvents(),
+    getRoundsFeed(),
   ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <main className="flex-grow">
         <section id="hero">
-          <Hero events={featuredEvents.events} />
+          <Hero rounds={roundsFeed.rounds} />
         </section>
 
         <section id="newdrivers">

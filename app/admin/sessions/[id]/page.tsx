@@ -333,8 +333,7 @@ export default function SessionResultsPage() {
               {new Date(sessionData.round.date).toLocaleDateString()}
             </p>
             <p>
-              <span className="font-medium">Track:</span> {sessionData.round.track.name}
-              {sessionData.round.track.location && ` - ${sessionData.round.track.location}`}
+              <span className="font-medium">Track:</span> {sessionData.round.track ? `${sessionData.round.track.name}${sessionData.round.track.location ? ` - ${sessionData.round.track.location}` : ""}` : "—"}
             </p>
           </div>
         </div>

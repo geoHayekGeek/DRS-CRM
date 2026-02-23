@@ -77,8 +77,8 @@ export async function GET(
       id: r.id,
       name: r.name,
       date: r.date.toISOString(),
-      trackName: r.track.name,
-      location: r.track.location ?? null,
+      trackName: r.track?.name ?? null,
+      location: r.track?.location ?? null,
       status: r.date < now ? "Completed" : "Upcoming",
     }));
 

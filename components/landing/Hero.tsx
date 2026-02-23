@@ -1,20 +1,12 @@
 import React from 'react';
-import EventsCard from './EventsCard';
-
-type FeaturedEvent = {
-  id: string;
-  title: string;
-  startsAt: string;
-  endsAt: string | null;
-  location: string | null;
-  status: "ONGOING" | "UPCOMING";
-};
+import RoundsCard from './RoundsCard';
+import type { RoundsFeedRound } from './RoundsCard';
 
 type Props = {
-  events: FeaturedEvent[];
+  rounds: RoundsFeedRound[];
 };
 
-const Hero = ({ events }: Props) => {
+const Hero = ({ rounds }: Props) => {
   return (
     <section className="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden ">
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-red-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
@@ -66,7 +58,7 @@ const Hero = ({ events }: Props) => {
 
           <div className="relative mx-auto lg:ml-auto w-full max-w-lg lg:max-w-none">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-red-200 to-orange-100 rounded-full blur-3xl opacity-40 animate-pulse"></div>
-            <EventsCard events={events} />
+            <RoundsCard rounds={rounds} />
           </div>
 
         </div>

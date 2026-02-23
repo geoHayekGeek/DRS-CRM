@@ -207,7 +207,7 @@ export async function GET(
       const championshipName = c?.name ?? "—";
       const roundId = round.id;
       const roundName = round.name;
-      const trackName = round.track.name;
+      const trackName = round.track?.name ?? "—";
       const sessionType = r.session.type;
       const position = r.position;
       const points = r.points;

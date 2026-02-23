@@ -48,7 +48,7 @@ export default function EditRoundPage() {
     date: "",
     trackId: "",
     championshipId: "",
-    numberOfGroups: "4",
+    numberOfGroups: "0",
     availableKarts: "",
   });
   const [setupCompleted, setSetupCompleted] = useState(false);
@@ -126,9 +126,9 @@ export default function EditRoundPage() {
       setFormData({
         name: round.name,
         date: dateStr,
-        trackId: round.trackId,
+        trackId: round.trackId ?? "",
         championshipId: round.championshipId ?? "",
-        numberOfGroups: String(round.numberOfGroups ?? 4),
+        numberOfGroups: String(round.numberOfGroups ?? 0),
         availableKarts: (round.availableKarts ?? []).join(", "),
       });
       if (driversRes.ok) {
@@ -162,20 +162,8 @@ export default function EditRoundPage() {
         return;
       }
 
-      if (!formData.trackId) {
-        setError("Track is required");
-        setSaving(false);
-        return;
-      }
-
       if (!formData.championshipId) {
         setError("Championship is required");
-        setSaving(false);
-        return;
-      }
-
-      if (!setupCompleted && selectedDriverIds.length === 0) {
-        setError("Select at least one participating driver");
         setSaving(false);
         return;
       }
@@ -183,14 +171,19 @@ export default function EditRoundPage() {
       const payload: Record<string, unknown> = {
         name: formData.name.trim(),
         date: formData.date,
-        trackId: formData.trackId,
         championshipId: formData.championshipId,
       };
+      if (formData.trackId.trim()) {
+        (payload as Record<string, unknown>).trackId = formData.trackId.trim();
+      } else {
+        (payload as Record<string, unknown>).trackId = null;
+      }
 
       if (!setupCompleted) {
-        const numGroups = parseInt(formData.numberOfGroups, 10);
-        if (isNaN(numGroups) || numGroups < 1) {
-          setError("Number of groups must be at least 1");
+        const raw = formData.numberOfGroups.trim();
+        const numGroups = raw === "" ? 0 : parseInt(formData.numberOfGroups, 10);
+        if (isNaN(numGroups) || numGroups < 0) {
+          setError("Number of groups must be 0 or greater");
           setSaving(false);
           return;
         }
@@ -351,10 +344,10 @@ export default function EditRoundPage() {
               <>
                 <div>
                   <label htmlFor="participating-drivers" className="block text-sm font-medium text-gray-700 mb-2">
-                    Participating Drivers *
+                    Participating Drivers
                   </label>
                   <p className="text-xs text-gray-500 mb-2">
-                    Select drivers for this round only. At least one driver is required before setup.
+                    Select drivers for this round (optional). Setup requires at least one driver.
                   </p>
                   <DriverMultiSelect
                     id="participating-drivers"
@@ -362,17 +355,17 @@ export default function EditRoundPage() {
                     selectedDriverIds={selectedDriverIds}
                     onChange={setSelectedDriverIds}
                     loading={driversLoading}
+                    required={false}
                   />
                 </div>
                 <div>
                   <label htmlFor="numberOfGroups" className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of groups *
+                    Number of groups
                   </label>
                   <input
                     id="numberOfGroups"
                     type="number"
-                    min={1}
-                    required
+                    min={0}
                     value={formData.numberOfGroups}
                     onChange={(e) => setFormData({ ...formData, numberOfGroups: e.target.value })}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
@@ -383,12 +376,11 @@ export default function EditRoundPage() {
                 </div>
                 <div>
                   <label htmlFor="availableKarts" className="block text-sm font-medium text-gray-700 mb-2">
-                    Available karts *
+                    Available karts
                   </label>
                   <input
                     id="availableKarts"
                     type="text"
-                    required
                     value={formData.availableKarts}
                     onChange={(e) => setFormData({ ...formData, availableKarts: e.target.value })}
                     placeholder="e.g. 1, 2, 3, 4, 5, 6, 7, 8"
@@ -409,11 +401,10 @@ export default function EditRoundPage() {
 
             <div>
               <label htmlFor="trackId" className="block text-sm font-medium text-gray-700 mb-2">
-                Track *
+                Track
               </label>
               <select
                 id="trackId"
-                required
                 value={formData.trackId}
                 onChange={(e) => setFormData({ ...formData, trackId: e.target.value })}
                 disabled={tracksLoading}
@@ -424,7 +415,7 @@ export default function EditRoundPage() {
                 onFocus={(e) => (e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.colors.primary.red}`)}
                 onBlur={(e) => (e.currentTarget.style.boxShadow = "")}
               >
-                <option value="">Select a track</option>
+                <option value="">Select a track (optional)</option>
                 {tracks.map((track) => (
                   <option key={track.id} value={track.id}>
                     {track.name}{track.location ? ` - ${track.location}` : ""}
@@ -447,11 +438,11 @@ export default function EditRoundPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 type="submit"
-                disabled={saving || tracksLoading || championshipsLoading || driversLoading || (!setupCompleted && selectedDriverIds.length === 0)}
+                disabled={saving || tracksLoading || championshipsLoading || driversLoading}
                 className="w-full sm:w-auto min-h-[44px] px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 style={{ backgroundColor: theme.colors.primary.red }}
-                onMouseEnter={(e) => !saving && !tracksLoading && !championshipsLoading && !driversLoading && (setupCompleted || selectedDriverIds.length > 0) && (e.currentTarget.style.backgroundColor = "#A01516")}
-                onMouseLeave={(e) => !saving && !tracksLoading && !championshipsLoading && !driversLoading && (setupCompleted || selectedDriverIds.length > 0) && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
+                onMouseEnter={(e) => !saving && !tracksLoading && !championshipsLoading && !driversLoading && (e.currentTarget.style.backgroundColor = "#A01516")}
+                onMouseLeave={(e) => !saving && !tracksLoading && !championshipsLoading && !driversLoading && (e.currentTarget.style.backgroundColor = theme.colors.primary.red)}
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>

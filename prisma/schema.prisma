@@ -85,8 +85,8 @@ model Round {
   id               String            @id @default(uuid())
   name             String
   date             DateTime
-  trackId          String            @map("track_id")
-  track            Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId          String?           @map("track_id")
+  track            Track?            @relation(fields: [trackId], references: [id], onDelete: Cascade)
   championshipId   String?           @map("championship_id")
   championship     Championship?     @relation(fields: [championshipId], references: [id], onDelete: Cascade)
   numberOfGroups   Int               @default(4) @map("number_of_groups")

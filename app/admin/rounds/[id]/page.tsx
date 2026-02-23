@@ -293,11 +293,28 @@ export default function RoundDetailPage() {
     <div className="p-4 sm:p-6 lg:p-8 w-full min-w-0">
       <div className="w-full max-w-4xl mx-auto">
         {roundStatus === "COMPLETED" ? (
-          <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
-            <p className="text-sm font-medium text-green-800">This round has been completed.</p>
+          <div className="mb-6 rounded-lg bg-green-900/30 border border-green-700/50 px-4 py-3">
+            <p className="text-sm font-medium text-green-300">This round has been completed.</p>
           </div>
         ) : (
           <p className="mb-6 text-sm text-gray-500">Round in progress.</p>
+        )}
+
+        {!round.setupCompleted && roundDriverCount === 0 && (
+          <div className="mb-6 rounded-lg border border-amber-600/50 bg-amber-950/40 px-4 py-3 flex flex-wrap items-center gap-2">
+            <p className="text-sm text-amber-200/95">
+              No participating drivers for this round.{" "}
+              <button
+                type="button"
+                onClick={() => router.push(`/admin/rounds/${id}/edit`)}
+                className="font-medium underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-amber-400/50 rounded"
+                style={{ color: theme.colors.primary.red }}
+              >
+                Add drivers on the Edit page
+              </button>{" "}
+              to enable round setup.
+            </p>
+          </div>
         )}
 
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
@@ -310,11 +327,6 @@ export default function RoundDetailPage() {
           <div className="flex flex-wrap gap-3 shrink-0">
             {!round.setupCompleted && (
               <>
-                {roundDriverCount === 0 && (
-                  <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    No participating drivers for this round. Add drivers on the Edit page to enable round setup.
-                  </p>
-                )}
                 <button
                   onClick={handleSetup}
                   disabled={setupLoading || !canSetup}
@@ -374,7 +386,7 @@ export default function RoundDetailPage() {
               <div>
                 <dt className="text-sm font-medium text-gray-500">Track</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {round.track.name}{round.track.location ? ` - ${round.track.location}` : ""}
+                  {round.track ? `${round.track.name}${round.track.location ? ` - ${round.track.location}` : ""}` : "—"}
                 </dd>
               </div>
               <div>

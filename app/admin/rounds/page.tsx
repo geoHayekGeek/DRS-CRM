@@ -23,10 +23,10 @@ interface Round {
   id: string;
   name: string;
   date: string;
-  track: Track;
-  championship: Championship;
+  track: Track | null;
+  championship: Championship | null;
   createdAt: string;
-  roundStatus: "COMPLETED" | "IN_PROGRESS";
+  roundStatus: "UPCOMING" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
 }
 
 export default function RoundsPage() {
@@ -187,20 +187,30 @@ export default function RoundsPage() {
                         className={`inline-flex px-2 py-0.5 text-xs font-medium uppercase tracking-wider rounded ${
                           round.roundStatus === "COMPLETED"
                             ? "bg-green-100 text-green-800"
-                            : "bg-amber-50 text-amber-800"
+                            : round.roundStatus === "IN_PROGRESS"
+                              ? "bg-amber-50 text-amber-800"
+                              : round.roundStatus === "UPCOMING"
+                                ? "bg-blue-50 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {round.roundStatus === "COMPLETED" ? "COMPLETED" : "IN PROGRESS"}
+                        {round.roundStatus === "COMPLETED"
+                          ? "COMPLETED"
+                          : round.roundStatus === "IN_PROGRESS"
+                            ? "IN PROGRESS"
+                            : round.roundStatus === "UPCOMING"
+                              ? "UPCOMING"
+                              : "PENDING"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(round.date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {round.championship.name}{round.championship.isCurrent ? " (Current)" : ""}
+                      {round.championship?.name ?? "—"}{round.championship?.isCurrent ? " (Current)" : ""}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {round.track.name}
+                      {round.track?.name ?? "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(round.createdAt)}

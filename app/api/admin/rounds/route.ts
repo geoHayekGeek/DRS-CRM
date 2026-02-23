@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getRoundStatus } from "@/lib/round-status";
 
 export async function GET() {
   try {
@@ -22,6 +23,7 @@ export async function GET() {
           },
           orderBy: { order: "asc" },
         },
+        _count: { select: { roundDrivers: true } },
       },
       orderBy: { date: "desc" },
     });
@@ -35,12 +37,17 @@ export async function GET() {
 
     const roundsWithStatus = rounds.map((r) => {
       const relevantSessions = r.sessions.filter((s) => !isLegacyGroupFinal(s));
-      const roundStatus =
+      const allSessionsComplete =
         relevantSessions.length > 0 &&
-        relevantSessions.every((s) => isSessionComplete(s))
-          ? "COMPLETED"
-          : "IN_PROGRESS";
-      const { sessions, ...rest } = r;
+        relevantSessions.every((s) => isSessionComplete(s));
+      const roundStatus = getRoundStatus({
+        date: r.date,
+        numberOfGroups: r.numberOfGroups ?? 0,
+        setupCompleted: r.setupCompleted ?? false,
+        driverCount: r._count?.roundDrivers ?? 0,
+        allSessionsComplete,
+      });
+      const { sessions, _count, ...rest } = r;
       return { ...rest, roundStatus };
     });
 
@@ -101,12 +108,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!trackId || typeof trackId !== "string") {
-      return NextResponse.json(
-        { error: "Track is required" },
-        { status: 400 }
-      );
-    }
+    const trackIdOpt =
+      trackId != null && typeof trackId === "string" && trackId.trim() !== ""
+        ? trackId.trim()
+        : null;
 
     if (!championshipId || typeof championshipId !== "string") {
       return NextResponse.json(
@@ -118,56 +123,50 @@ export async function POST(request: NextRequest) {
     const numGroups =
       numberOfGroups !== undefined && numberOfGroups !== null
         ? Number(numberOfGroups)
-        : 4;
-    if (!Number.isInteger(numGroups) || numGroups < 1) {
+        : 0;
+    if (!Number.isInteger(numGroups) || numGroups < 0) {
       return NextResponse.json(
-        { error: "Number of groups must be at least 1" },
+        { error: "Number of groups must be 0 or greater" },
         { status: 400 }
       );
     }
 
-    const karts = parseAvailableKarts(availableKarts);
-    if (karts === null) {
-      return NextResponse.json(
-        { error: "Available karts must be a list of unique integers (e.g. comma-separated)" },
-        { status: 400 }
-      );
-    }
+    const karts =
+      availableKarts === undefined || availableKarts === null
+        ? []
+        : parseAvailableKarts(availableKarts) ?? [];
 
     const driverIdsArray = Array.isArray(driverIds)
       ? (driverIds as unknown[]).filter((id): id is string => typeof id === "string" && id.trim().length > 0)
       : [];
     const uniqueDriverIds = [...new Set(driverIdsArray)];
 
-    if (uniqueDriverIds.length === 0) {
-      return NextResponse.json(
-        { error: "At least one participating driver is required" },
-        { status: 400 }
-      );
+    let validIds = new Set<string>();
+    if (uniqueDriverIds.length > 0) {
+      const validDrivers = await db.driver.findMany({
+        where: { id: { in: uniqueDriverIds } },
+        select: { id: true },
+      });
+      validIds = new Set(validDrivers.map((d) => d.id));
+      const missing = uniqueDriverIds.filter((id) => !validIds.has(id));
+      if (missing.length > 0) {
+        return NextResponse.json(
+          { error: `Driver(s) not found: ${missing.join(", ")}` },
+          { status: 400 }
+        );
+      }
     }
 
-    const validDrivers = await db.driver.findMany({
-      where: { id: { in: uniqueDriverIds } },
-      select: { id: true },
-    });
-    const validIds = new Set(validDrivers.map((d) => d.id));
-    const missing = uniqueDriverIds.filter((id) => !validIds.has(id));
-    if (missing.length > 0) {
-      return NextResponse.json(
-        { error: `Driver(s) not found: ${missing.join(", ")}` },
-        { status: 400 }
-      );
-    }
-
-    const track = await db.track.findUnique({
-      where: { id: trackId },
-    });
-
-    if (!track) {
-      return NextResponse.json(
-        { error: "Track not found" },
-        { status: 404 }
-      );
+    if (trackIdOpt) {
+      const track = await db.track.findUnique({
+        where: { id: trackIdOpt },
+      });
+      if (!track) {
+        return NextResponse.json(
+          { error: "Track not found" },
+          { status: 404 }
+        );
+      }
     }
 
     const championship = await db.championship.findUnique({
@@ -186,20 +185,22 @@ export async function POST(request: NextRequest) {
         data: {
           name: name.trim(),
           date: roundDate,
-          trackId,
+          ...(trackIdOpt && { trackId: trackIdOpt }),
           championshipId,
           numberOfGroups: numGroups,
           availableKarts: karts,
         },
       });
 
-      await tx.roundDriver.createMany({
-        data: uniqueDriverIds.map((driverId) => ({
-          roundId: created.id,
-          driverId,
-        })),
-        skipDuplicates: true,
-      });
+      if (uniqueDriverIds.length > 0) {
+        await tx.roundDriver.createMany({
+          data: uniqueDriverIds.map((driverId) => ({
+            roundId: created.id,
+            driverId,
+          })),
+          skipDuplicates: true,
+        });
+      }
 
       return tx.round.findUniqueOrThrow({
         where: { id: created.id },

@@ -175,7 +175,7 @@ export default function ChampionshipDetailPage() {
                         {round.name}
                         {round.date && (
                           <span className="text-gray-500 font-normal ml-1">
-                            — {formatDate(round.date)}
+                            - {formatDate(round.date)}
                           </span>
                         )}
                       </Link>

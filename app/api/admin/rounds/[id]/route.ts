@@ -103,28 +103,27 @@ export async function PUT(
       );
     }
 
-    if (!trackId || typeof trackId !== "string") {
-      return NextResponse.json(
-        { error: "Track is required" },
-        { status: 400 }
-      );
+    const trackIdOpt =
+      trackId != null && typeof trackId === "string" && trackId.trim() !== ""
+        ? trackId.trim()
+        : null;
+
+    if (trackIdOpt) {
+      const track = await db.track.findUnique({
+        where: { id: trackIdOpt },
+      });
+      if (!track) {
+        return NextResponse.json(
+          { error: "Track not found" },
+          { status: 404 }
+        );
+      }
     }
 
     if (!championshipId || typeof championshipId !== "string") {
       return NextResponse.json(
         { error: "Championship is required" },
         { status: 400 }
-      );
-    }
-
-    const track = await db.track.findUnique({
-      where: { id: trackId },
-    });
-
-    if (!track) {
-      return NextResponse.json(
-        { error: "Track not found" },
-        { status: 404 }
       );
     }
 
@@ -142,23 +141,23 @@ export async function PUT(
     const data: {
       name: string;
       date: Date;
-      trackId: string;
+      trackId?: string | null;
       championshipId: string;
       numberOfGroups?: number;
       availableKarts?: number[];
     } = {
       name: name.trim(),
       date: roundDate,
-      trackId,
       championshipId,
     };
+    data.trackId = trackIdOpt;
 
     if (!existingRound.setupCompleted) {
       if (numberOfGroups !== undefined && numberOfGroups !== null) {
         const numGroups = Number(numberOfGroups);
-        if (!Number.isInteger(numGroups) || numGroups < 1) {
+        if (!Number.isInteger(numGroups) || numGroups < 0) {
           return NextResponse.json(
-            { error: "Number of groups must be at least 1" },
+            { error: "Number of groups must be 0 or greater" },
             { status: 400 }
           );
         }

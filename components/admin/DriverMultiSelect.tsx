@@ -15,6 +15,7 @@ interface DriverMultiSelectProps {
   onChange: (selectedDriverIds: string[]) => void;
   disabled?: boolean;
   loading?: boolean;
+  required?: boolean;
   id?: string;
   "aria-label"?: string;
 }
@@ -25,6 +26,7 @@ export function DriverMultiSelect({
   onChange,
   disabled = false,
   loading = false,
+  required = true,
   id = "participating-drivers",
   "aria-label": ariaLabel = "Select participating drivers",
 }: DriverMultiSelectProps) {
@@ -115,7 +117,7 @@ export function DriverMultiSelect({
     if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [focusedIndex]);
 
-  const showValidationError = selectedDriverIds.length === 0;
+  const showValidationError = required && selectedDriverIds.length === 0;
 
   if (loading) {
     return (

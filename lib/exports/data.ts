@@ -69,7 +69,7 @@ export async function loadSessionExportData(
 
   const championshipName = session.round.championship?.name ?? "—";
   const roundName = session.round.name;
-  const trackName = session.round.track.name;
+  const trackName = session.round.track?.name ?? "—";
   const sessionType = sessionTypeToLabel(session.type);
   const group = session.group;
   const pointsType =
@@ -146,7 +146,7 @@ export async function loadRoundExportData(
 
   const championshipName = round.championship?.name ?? "—";
   const roundName = round.name;
-  const trackName = round.track.name;
+  const trackName = round.track?.name ?? "—";
 
   return sessionsWithResults.map((session) => {
     const sessionType = sessionTypeToLabel(session.type);
