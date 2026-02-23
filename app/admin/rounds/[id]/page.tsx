@@ -382,6 +382,10 @@ export default function RoundDetailPage() {
                 <dd className="mt-1 text-sm text-gray-900">{round.numberOfGroups ?? "—"}</dd>
               </div>
               <div>
+                <dt className="text-sm font-medium text-gray-500">Number of drivers</dt>
+                <dd className="mt-1 text-sm text-gray-900">{roundDriverCount}</dd>
+              </div>
+              <div>
                 <dt className="text-sm font-medium text-gray-500">Available karts</dt>
                 <dd className="mt-1 text-sm text-gray-900">
                   {round.availableKarts?.length

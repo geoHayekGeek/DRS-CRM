@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { theme } from "@/lib/theme";
+import { DriverMultiSelect } from "@/components/admin/DriverMultiSelect";
 
 interface Track {
   id: string;
@@ -349,42 +350,19 @@ export default function EditRoundPage() {
             {!setupCompleted && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="participating-drivers" className="block text-sm font-medium text-gray-700 mb-2">
                     Participating Drivers *
                   </label>
                   <p className="text-xs text-gray-500 mb-2">
                     Select drivers for this round only. At least one driver is required before setup.
                   </p>
-                  {driversLoading ? (
-                    <p className="text-sm text-gray-500">Loading drivers...</p>
-                  ) : allDrivers.length === 0 ? (
-                    <p className="text-sm text-gray-500">No drivers in database.</p>
-                  ) : (
-                    <select
-                      multiple
-                      value={selectedDriverIds}
-                      onChange={(e) => {
-                        const selected = Array.from(e.target.selectedOptions, (o) => o.value);
-                        setSelectedDriverIds(selected);
-                      }}
-                      className="block w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent"
-                      style={{
-                        "--tw-ring-color": theme.colors.primary.red,
-                      } as React.CSSProperties & { "--tw-ring-color": string }}
-                      aria-label="Select participating drivers"
-                    >
-                      {allDrivers.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.fullName}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {selectedDriverIds.length > 0 && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      {selectedDriverIds.length} driver(s) selected. Use Ctrl/Cmd to multi-select.
-                    </p>
-                  )}
+                  <DriverMultiSelect
+                    id="participating-drivers"
+                    drivers={allDrivers}
+                    selectedDriverIds={selectedDriverIds}
+                    onChange={setSelectedDriverIds}
+                    loading={driversLoading}
+                  />
                 </div>
                 <div>
                   <label htmlFor="numberOfGroups" className="block text-sm font-medium text-gray-700 mb-2">
