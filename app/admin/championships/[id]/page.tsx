@@ -11,6 +11,7 @@ interface Round {
   name: string;
   date: string;
   createdAt: string;
+  setupCompleted: boolean;
 }
 
 interface Championship {
@@ -159,7 +160,7 @@ export default function ChampionshipDetailPage() {
                   {[...championship.rounds]
                     .sort((a, b) => (new Date(a.date).getTime() || 0) - (new Date(b.date).getTime() || 0))
                     .map((round) => (
-                    <li key={round.id}>
+                    <li key={round.id} className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/admin/rounds/${round.id}`}
                         className="text-sm font-medium text-gray-900 hover:underline"
@@ -174,10 +175,19 @@ export default function ChampionshipDetailPage() {
                         {round.name}
                         {round.date && (
                           <span className="text-gray-500 font-normal ml-1">
-                            - {formatDate(round.date)}
+                            — {formatDate(round.date)}
                           </span>
                         )}
                       </Link>
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
+                          round.setupCompleted
+                            ? "bg-green-100 text-green-800"
+                            : "bg-amber-100 text-amber-800"
+                        }`}
+                      >
+                        {round.setupCompleted ? "Setup done" : "Not set up"}
+                      </span>
                     </li>
                   ))}
                 </ul>
