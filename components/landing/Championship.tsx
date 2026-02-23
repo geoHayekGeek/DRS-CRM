@@ -12,6 +12,7 @@ export type FeaturedChampionship = {
 export type StandingRow = {
   fullName: string;
   totalPoints: number;
+  roundsPlayed?: number;
 };
 
 type Props = {
@@ -69,6 +70,7 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
                         <th className="px-6 py-3 text-center">Pos</th>
                         <th className="px-6 py-3 text-center">Driver</th>
                         <th className="px-6 py-3 text-center">Pts</th>
+                        <th className="px-6 py-3 text-center text-gray-500">Rounds</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -79,6 +81,7 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
                           </td>
                           <td className="px-6 py-4 font-medium text-gray-900 text-center">{row.fullName}</td>
                           <td className="px-6 py-4 font-bold text-black text-center">{formatPoints(row.totalPoints)}</td>
+                          <td className="px-6 py-4 text-gray-500 text-center">{row.roundsPlayed ?? 0}</td>
                         </tr>
                       ))}
                     </tbody>

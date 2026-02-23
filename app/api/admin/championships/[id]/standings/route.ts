@@ -178,13 +178,39 @@ export async function GET(
       }
     }
 
+    // Rounds played: championship-level count of rounds where driver has at least one result (any round, not only completed)
+    const allChampionshipRoundIds = await db.round.findMany({
+      where: { championshipId },
+      select: { id: true },
+    }).then((rows) => rows.map((r) => r.id));
+    const driverRoundsPlayed = new Map<string, number>();
+    if (allChampionshipRoundIds.length > 0) {
+      const allResultsInChampionship = await db.sessionResult.findMany({
+        where: { session: { roundId: { in: allChampionshipRoundIds } } },
+        select: {
+          driverId: true,
+          session: { select: { roundId: true } },
+        },
+      });
+      const driverToRounds = new Map<string, Set<string>>();
+      for (const r of allResultsInChampionship) {
+        if (!driverToRounds.has(r.driverId)) driverToRounds.set(r.driverId, new Set());
+        driverToRounds.get(r.driverId)!.add(r.session.roundId);
+      }
+      for (const [driverId, roundSet] of driverToRounds) {
+        driverRoundsPlayed.set(driverId, roundSet.size);
+      }
+    }
+
     const entries = Array.from(driverMap.values()).map((entry) => {
       const adjustmentsSum = adjustmentByDriver.get(entry.driverId) ?? 0;
       const totalPoints = entry.basePoints + adjustmentsSum;
+      const roundsPlayed = driverRoundsPlayed.get(entry.driverId) ?? 0;
       return {
         ...entry,
         totalPoints,
         adjustments: adjustmentsSum,
+        roundsPlayed,
         pointsByRound: entry.pointsByRound.sort((a, b) => {
           const indexA = rounds.findIndex((r) => r.id === a.roundId);
           const indexB = rounds.findIndex((r) => r.id === b.roundId);

@@ -69,7 +69,7 @@ export async function GET() {
         endDate: string | null;
       } | null;
       hasStandings: boolean;
-      standings?: { fullName: string; totalPoints: number }[];
+      standings?: { fullName: string; totalPoints: number; roundsPlayed: number }[];
     } = {
       championship: {
         id: featured.id,
@@ -87,31 +87,41 @@ export async function GET() {
       });
       const roundIds = rounds.map((r) => r.id);
       if (roundIds.length > 0) {
-        const driverPoints = await db.sessionResult.groupBy({
-          by: ["driverId"],
-          where: {
-            session: { roundId: { in: roundIds } },
+        const results = await db.sessionResult.findMany({
+          where: { session: { roundId: { in: roundIds } } },
+          select: {
+            driverId: true,
+            points: true,
+            session: { select: { roundId: true } },
           },
-          _sum: { points: true },
         });
-        const top5 = driverPoints
-          .map((d) => ({
-            driverId: d.driverId,
-            totalPoints: d._sum.points ?? 0,
-          }))
-          .sort((a, b) => b.totalPoints - a.totalPoints)
-          .slice(0, 5);
+        const driverPoints = new Map<string, number>();
+        const driverRoundIds = new Map<string, Set<string>>();
+        for (const r of results) {
+          driverPoints.set(r.driverId, (driverPoints.get(r.driverId) ?? 0) + r.points);
+          if (!driverRoundIds.has(r.driverId)) driverRoundIds.set(r.driverId, new Set());
+          driverRoundIds.get(r.driverId)!.add(r.session.roundId);
+        }
+        const top5 = Array.from(driverPoints.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([driverId]) => driverId);
 
         if (top5.length > 0) {
           const drivers = await db.driver.findMany({
-            where: { id: { in: top5.map((t) => t.driverId) } },
+            where: { id: { in: top5 } },
             select: { id: true, fullName: true },
           });
-          const driverMap = new Map(drivers.map((d) => [d.id, d.fullName]));
-          response.standings = top5.map((t) => ({
-            fullName: driverMap.get(t.driverId) ?? "—",
-            totalPoints: t.totalPoints,
-          }));
+          const nameMap = new Map(drivers.map((d) => [d.id, d.fullName]));
+          response.standings = top5.map((driverId) => {
+            const roundIdsWithResults = driverRoundIds.get(driverId) ?? new Set<string>();
+            const roundsPlayed = roundIdsWithResults.size;
+            return {
+              fullName: nameMap.get(driverId) ?? "—",
+              totalPoints: driverPoints.get(driverId) ?? 0,
+              roundsPlayed,
+            };
+          });
         } else {
           response.standings = [];
         }

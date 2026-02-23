@@ -16,7 +16,7 @@ type Round = {
 type Props = {
   championshipId: string;
   rounds: Round[];
-  standings: { fullName: string; totalPoints: number }[];
+  standings: { fullName: string; totalPoints: number; roundsPlayed?: number }[];
 };
 
 export default function ChampionshipDetail({
@@ -112,6 +112,9 @@ export default function ChampionshipDetail({
                   <th className="px-6 py-3 font-semibold text-gray-900 text-right uppercase tracking-wider">
                     Pts
                   </th>
+                  <th className="px-6 py-3 font-semibold text-gray-500 text-center uppercase tracking-wider">
+                    Rounds
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -123,6 +126,9 @@ export default function ChampionshipDetail({
                     <td className="px-6 py-4 text-gray-900">{row.fullName}</td>
                     <td className="px-6 py-4 text-right font-bold text-gray-900">
                       {formatPoints(row.totalPoints)}
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-500">
+                      {row.roundsPlayed ?? 0}
                     </td>
                   </tr>
                 ))}

@@ -3,7 +3,7 @@ import { ToasterClient } from "@/components/ToasterClient";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DRS Cup 2026 - Admin",
+  title: "DRS Cup 2026",
   description: "Karting Championship Management System",
 };
 

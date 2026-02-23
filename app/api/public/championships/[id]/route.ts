@@ -40,7 +40,7 @@ export async function GET(
     });
 
     const roundIds = rounds.map((r) => r.id);
-    let standings: { fullName: string; totalPoints: number }[] = [];
+    let standings: { fullName: string; totalPoints: number; roundsPlayed: number }[] = [];
 
     if (roundIds.length > 0) {
       const results = await db.sessionResult.findMany({
@@ -52,9 +52,12 @@ export async function GET(
         },
       });
       const driverPoints = new Map<string, number>();
+      const driverRoundIds = new Map<string, Set<string>>();
       for (const r of results) {
         const cur = driverPoints.get(r.driverId) ?? 0;
         driverPoints.set(r.driverId, cur + r.points);
+        if (!driverRoundIds.has(r.driverId)) driverRoundIds.set(r.driverId, new Set());
+        driverRoundIds.get(r.driverId)!.add(r.session.roundId);
       }
       const driverIds = Array.from(driverPoints.entries())
         .sort((a, b) => b[1] - a[1])
@@ -65,10 +68,15 @@ export async function GET(
           select: { id: true, fullName: true },
         });
         const nameMap = new Map(drivers.map((d) => [d.id, d.fullName]));
-        standings = driverIds.map((driverId) => ({
-          fullName: nameMap.get(driverId) ?? "—",
-          totalPoints: driverPoints.get(driverId) ?? 0,
-        }));
+        standings = driverIds.map((driverId) => {
+          const roundIdsWithResults = driverRoundIds.get(driverId) ?? new Set<string>();
+          const roundsPlayed = roundIdsWithResults.size;
+          return {
+            fullName: nameMap.get(driverId) ?? "—",
+            totalPoints: driverPoints.get(driverId) ?? 0,
+            roundsPlayed,
+          };
+        });
       }
     }
 

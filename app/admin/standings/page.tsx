@@ -54,6 +54,7 @@ interface Standing {
   wins: number;
   podiums: number;
   poles: number;
+  roundsPlayed: number;
   pointsByRound: PointsByRound[];
   canReorder?: boolean;
   tieKey?: string;
@@ -176,6 +177,9 @@ function StandingsRow({
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right font-medium">
         {formatPoints(standing.totalPoints)}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+        {standing.roundsPlayed ?? 0}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center justify-end gap-1">
@@ -610,6 +614,9 @@ function StandingsContent() {
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Total Points
                   </th>
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Rounds Played
+                  </th>
                   <th className="px-6 py-3 w-28" />
                 </tr>
               </thead>
@@ -638,7 +645,7 @@ function StandingsContent() {
                             />
                             {expandedDriverId === standing.driverId && (
                               <tr className="bg-gray-50">
-                                <td colSpan={9} className="px-6 py-4">
+                                <td colSpan={10} className="px-6 py-4">
                                   <ExpandedContent standing={standing} />
                                 </td>
                               </tr>
@@ -670,7 +677,7 @@ function StandingsContent() {
                               />
                               {expandedDriverId === standing.driverId && (
                                 <tr className="bg-gray-50">
-                                  <td colSpan={9} className="px-6 py-4">
+                                  <td colSpan={10} className="px-6 py-4">
                                     <ExpandedContent standing={standing} />
                                   </td>
                                 </tr>
