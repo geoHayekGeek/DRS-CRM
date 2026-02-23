@@ -4,6 +4,16 @@ import { db } from "@/lib/db";
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const RACE_TYPES = ["RACE", "FINAL_RACE"];
+const QUALIFYING_TYPES = ["QUALIFYING", "FINAL_QUALIFYING"];
+
+function isRaceType(type: string): boolean {
+  return RACE_TYPES.includes(type);
+}
+function isQualifyingType(type: string): boolean {
+  return QUALIFYING_TYPES.includes(type);
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
@@ -42,6 +52,7 @@ export async function GET(
             pointsMultiplier: true,
             round: {
               select: {
+                id: true,
                 name: true,
                 date: true,
                 track: { select: { name: true } },
@@ -62,6 +73,10 @@ export async function GET(
           weight: driver.weight,
           height: driver.height,
           notes: driver.notes,
+        },
+        performance: {
+          careerStats: { totalPoints: 0, wins: 0, podiums: 0, poles: 0 },
+          championships: [],
         },
       });
     }
@@ -120,28 +135,50 @@ export async function GET(
     }
 
     type SessionPublic = {
-      sessionType: string;
-      group: string | null;
+      type: string;
       position: number;
       points: number;
-      multiplier: string | null;
     };
     type RoundPublic = {
+      roundId: string;
       roundName: string;
       trackName: string;
       roundPoints: number;
+      positionInRound: number | null;
+      wins: number;
+      podiums: number;
+      poles: number;
       sessions: SessionPublic[];
     };
     type ChampionshipPublic = {
       championshipName: string;
       totalPoints: number;
       positionInChampionship: number | null;
+      wins: number;
+      podiums: number;
+      poles: number;
       rounds: RoundPublic[];
+    };
+
+    const careerStats = {
+      totalPoints: 0,
+      wins: 0,
+      podiums: 0,
+      poles: 0,
     };
 
     const roundMap = new Map<
       string,
-      { roundName: string; trackName: string; roundPoints: number; sessions: SessionPublic[] }
+      {
+        roundId: string;
+        roundName: string;
+        trackName: string;
+        roundPoints: number;
+        wins: number;
+        podiums: number;
+        poles: number;
+        sessions: SessionPublic[];
+      }
     >();
     const championshipMap = new Map<
       string,
@@ -149,6 +186,9 @@ export async function GET(
         championshipName: string;
         totalPoints: number;
         positionInChampionship: number | null;
+        wins: number;
+        podiums: number;
+        poles: number;
         roundIds: string[];
       }
     >();
@@ -165,35 +205,46 @@ export async function GET(
       const c = round.championship;
       const championshipId = round.championshipId ?? "none";
       const championshipName = c?.name ?? "—";
-      const roundId = `${round.name}-${round.date.getTime()}`;
+      const roundId = round.id;
       const roundName = round.name;
       const trackName = round.track.name;
       const sessionType = r.session.type;
-      const group = r.session.group;
       const position = r.position;
       const points = r.points;
-      const multiplier =
-        r.session.pointsMultiplier != null
-          ? String(r.session.pointsMultiplier)
-          : null;
 
       if (!roundMap.has(roundId)) {
         roundMap.set(roundId, {
+          roundId,
           roundName,
           trackName,
           roundPoints: 0,
+          wins: 0,
+          podiums: 0,
+          poles: 0,
           sessions: [],
         });
       }
       const roundEntry = roundMap.get(roundId)!;
       roundEntry.roundPoints += points;
       roundEntry.sessions.push({
-        sessionType,
-        group,
+        type: sessionType,
         position,
         points,
-        multiplier,
       });
+
+      if (isRaceType(sessionType)) {
+        if (position === 1) {
+          careerStats.wins += 1;
+          roundEntry.wins += 1;
+        }
+        if (position >= 1 && position <= 3) {
+          careerStats.podiums += 1;
+          roundEntry.podiums += 1;
+        }
+      } else if (isQualifyingType(sessionType) && position === 1) {
+        careerStats.polePositions += 1;
+        roundEntry.polePositions += 1;
+      }
 
       if (!championshipMap.has(championshipId)) {
         championshipMap.set(championshipId, {
@@ -203,11 +254,21 @@ export async function GET(
             championshipId !== "none"
               ? positionByChampionship.get(championshipId) ?? null
               : null,
+          wins: 0,
+          podiums: 0,
+          poles: 0,
           roundIds: [],
         });
       }
       const champEntry = championshipMap.get(championshipId)!;
       champEntry.totalPoints += points;
+      careerStats.totalPoints += points;
+      if (isRaceType(sessionType)) {
+        if (position === 1) champEntry.wins += 1;
+        if (position >= 1 && position <= 3) champEntry.podiums += 1;
+      } else if (isQualifyingType(sessionType) && position === 1) {
+        champEntry.polePositions += 1;
+      }
       if (!champEntry.roundIds.includes(roundId)) {
         champEntry.roundIds.push(roundId);
       }
@@ -220,7 +281,7 @@ export async function GET(
     for (const r of results) {
       const cid = r.session.round.championshipId ?? "none";
       const round = r.session.round;
-      const roundId = `${round.name}-${round.date.getTime()}`;
+      const roundId = round.id;
       if (!roundOrderByChampionship.has(cid)) {
         roundOrderByChampionship.set(cid, []);
       }
@@ -233,17 +294,66 @@ export async function GET(
       arr.sort((a, b) => a.date.getTime() - b.date.getTime());
     }
 
+    const roundIds = Array.from(roundMap.keys());
+    let positionInRoundByRound = new Map<string, number>();
+    if (roundIds.length > 0) {
+      const roundResults = await db.sessionResult.findMany({
+        where: {
+          session: { roundId: { in: roundIds } },
+        },
+        select: {
+          driverId: true,
+          points: true,
+          session: { select: { roundId: true } },
+        },
+      });
+      const pointsByRoundAndDriver = new Map<
+        string,
+        Map<string, number>
+      >();
+      for (const row of roundResults) {
+        const rid = row.session.roundId;
+        if (!pointsByRoundAndDriver.has(rid)) {
+          pointsByRoundAndDriver.set(rid, new Map());
+        }
+        const driverMap = pointsByRoundAndDriver.get(rid)!;
+        const current = driverMap.get(row.driverId) ?? 0;
+        driverMap.set(row.driverId, current + row.points);
+      }
+      for (const rid of roundIds) {
+        const driverTotals = pointsByRoundAndDriver.get(rid);
+        if (!driverTotals) continue;
+        const sorted = Array.from(driverTotals.entries())
+          .sort((a, b) => b[1] - a[1])
+          .map(([did]) => did);
+        const pos = sorted.indexOf(id);
+        if (pos !== -1) {
+          positionInRoundByRound.set(rid, pos + 1);
+        }
+      }
+    }
+
     const championships: ChampionshipPublic[] = Array.from(
       championshipMap.entries()
     ).map(([cid, entry]) => {
       const roundOrder = roundOrderByChampionship.get(cid) ?? [];
       const rounds: RoundPublic[] = roundOrder
-        .map(({ roundId }) => roundMap.get(roundId))
-        .filter((r): r is NonNullable<typeof r> => r != null);
+        .map(({ roundId }) => {
+          const r = roundMap.get(roundId);
+          if (!r) return null;
+          return {
+            ...r,
+            positionInRound: positionInRoundByRound.get(roundId) ?? null,
+          };
+        })
+        .filter((r): r is RoundPublic => r != null);
       return {
         championshipName: entry.championshipName,
         totalPoints: entry.totalPoints,
         positionInChampionship: entry.positionInChampionship,
+        wins: entry.wins,
+        podiums: entry.podiums,
+        poles: entry.poles,
         rounds,
       };
     });
@@ -261,6 +371,12 @@ export async function GET(
         notes: driver.notes,
       },
       performance: {
+        careerStats: {
+          totalPoints: careerStats.totalPoints,
+          wins: careerStats.wins,
+          podiums: careerStats.podiums,
+          poles: careerStats.polePositions,
+        },
         championships,
       },
     });
