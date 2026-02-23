@@ -1,19 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getRoundStatus } from "@/lib/round-status";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const championship = await db.championship.findUnique({
-      where: { id: params.id },
-      include: {
-        rounds: {
-          orderBy: { date: "desc" },
+    const [championship, rounds] = await Promise.all([
+      db.championship.findUnique({
+        where: { id: params.id },
+      }),
+      db.round.findMany({
+        where: { championshipId: params.id },
+        orderBy: { date: "desc" },
+        include: {
+          sessions: {
+            select: {
+              type: true,
+              group: true,
+              status: true,
+              results: { select: { id: true } },
+            },
+            orderBy: { order: "asc" },
+          },
+          _count: { select: { roundDrivers: true } },
         },
-      },
-    });
+      }),
+    ]);
 
     if (!championship) {
       return NextResponse.json(
@@ -22,7 +36,32 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(championship);
+    const isLegacyGroupFinal = (s: { type: string; group: string | null }) =>
+      (s.type === "FINAL_QUALIFYING" || s.type === "FINAL_RACE") && s.group !== null;
+    const isSessionComplete = (
+      s: { status: string; results: { id: string }[] }
+    ) => s.status === "COMPLETED" || s.results.length > 0;
+
+    const roundsWithStatus = rounds.map((r) => {
+      const relevantSessions = r.sessions.filter((s) => !isLegacyGroupFinal(s));
+      const allSessionsComplete =
+        relevantSessions.length > 0 &&
+        relevantSessions.every((s) => isSessionComplete(s));
+      const roundStatus = getRoundStatus({
+        date: r.date,
+        numberOfGroups: r.numberOfGroups ?? 0,
+        setupCompleted: r.setupCompleted ?? false,
+        driverCount: r._count?.roundDrivers ?? 0,
+        allSessionsComplete,
+      });
+      const { sessions, _count, ...rest } = r;
+      return { ...rest, roundStatus };
+    });
+
+    return NextResponse.json({
+      ...championship,
+      rounds: roundsWithStatus,
+    });
   } catch (error) {
     console.error("Error fetching championship:", error);
     return NextResponse.json(

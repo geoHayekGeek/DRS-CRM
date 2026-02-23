@@ -12,6 +12,7 @@ interface Round {
   date: string;
   createdAt: string;
   setupCompleted: boolean;
+  roundStatus: "UPCOMING" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
 }
 
 interface Championship {
@@ -180,13 +181,23 @@ export default function ChampionshipDetailPage() {
                         )}
                       </Link>
                       <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
-                          round.setupCompleted
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium uppercase tracking-wider rounded ${
+                          round.roundStatus === "COMPLETED"
                             ? "bg-green-100 text-green-800"
-                            : "bg-amber-100 text-amber-800"
+                            : round.roundStatus === "IN_PROGRESS"
+                              ? "bg-amber-50 text-amber-800"
+                              : round.roundStatus === "UPCOMING"
+                                ? "bg-blue-50 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {round.setupCompleted ? "Setup done" : "Not set up"}
+                        {round.roundStatus === "COMPLETED"
+                          ? "COMPLETED"
+                          : round.roundStatus === "IN_PROGRESS"
+                            ? "IN PROGRESS"
+                            : round.roundStatus === "UPCOMING"
+                              ? "UPCOMING"
+                              : "PENDING"}
                       </span>
                     </li>
                   ))}
