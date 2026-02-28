@@ -158,20 +158,21 @@ export default function FullGalleryPage() {
           </div>
         </div>
 
-        <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 space-y-4" style={{ columnFill: "balance" }}>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          style={{ gridAutoRows: "minmax(200px, auto)" }}
+        >
           {images.map((img, index) => (
             <div
               key={img.id}
-              className="relative group rounded-2xl overflow-hidden bg-gray-100 cursor-pointer break-inside-avoid shadow-md hover:shadow-xl transition-shadow duration-300"
+              className="relative group rounded-2xl overflow-hidden bg-gray-100 cursor-pointer aspect-[4/3] min-h-[200px] shadow-md hover:shadow-xl transition-shadow duration-300"
               onClick={() => openLightbox(index)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") openLightbox(index); }}
               aria-label={`View ${img.roundName} image`}
             >
-              <div className="relative aspect-[4/3] min-h-[200px] w-full">
-                <Image src={img.imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
-              </div>
+              <Image src={img.imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                 <p className="text-white font-semibold text-sm truncate">{img.roundName}</p>
                 <p className="text-white/80 text-xs truncate">{img.championshipName}</p>
