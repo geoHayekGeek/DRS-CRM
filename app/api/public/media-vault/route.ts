@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-const MAX_IMAGES_PER_YEAR = 40;
-
 export type MediaVaultImage = {
   id: string;
   imageUrl: string;
@@ -58,8 +56,6 @@ export async function GET() {
       const year = new Date(championship.startDate).getFullYear();
       if (!byYear.has(year)) byYear.set(year, []);
       const list = byYear.get(year)!;
-      if (list.length >= MAX_IMAGES_PER_YEAR) continue;
-
       list.push({
         id: img.id,
         imageUrl: img.imageUrl,

@@ -2,60 +2,24 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { useMediaVault } from "@/hooks/useMediaVault";
+import { MediaVaultLightbox } from "./MediaVaultLightbox";
 
-type MediaVaultImage = {
-  id: string;
-  imageUrl: string;
-  roundId: string;
-  roundName: string;
-  championshipName: string;
-  createdAt: string;
-};
-
-type MediaVaultYear = {
-  year: number;
-  championshipId: string;
-  championshipName: string;
-  images: MediaVaultImage[];
-};
+const HOMEPAGE_IMAGE_LIMIT = 8;
 
 export default function Gallery() {
-  const [data, setData] = useState<MediaVaultYear[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, hasAnyMedia } = useMediaVault();
   const [activeYear, setActiveYear] = useState<number | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [lightboxYear, setLightboxYear] = useState<number | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/public/media-vault")
-      .then((res) => res.json())
-      .then((list: MediaVaultYear[]) => {
-        if (!cancelled && Array.isArray(list)) {
-          setData(list);
-          if (list.length > 0 && activeYear === null) {
-            setActiveYear(list[0].year);
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setData([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (data.length > 0 && activeYear === null) setActiveYear(data[0].year);
   }, [data, activeYear]);
 
   const activeData = data.find((d) => d.year === activeYear);
-  const images = activeData?.images ?? [];
-  const currentYearIndex = data.findIndex((d) => d.year === activeYear);
+  const allImagesForYear = activeData?.images ?? [];
+  const images = allImagesForYear.slice(0, HOMEPAGE_IMAGE_LIMIT);
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
@@ -71,14 +35,16 @@ export default function Gallery() {
     if (lightboxIndex === null || lightboxYear === null) return;
     const yearData = data.find((d) => d.year === lightboxYear);
     if (!yearData) return;
+    const displayedInYear = yearData.images.slice(0, HOMEPAGE_IMAGE_LIMIT);
     if (lightboxIndex > 0) {
       setLightboxIndex(lightboxIndex - 1);
     } else {
       const prevYearIdx = data.findIndex((d) => d.year === lightboxYear) + 1;
       if (prevYearIdx < data.length) {
         const prevYear = data[prevYearIdx];
+        const prevDisplayed = prevYear.images.slice(0, HOMEPAGE_IMAGE_LIMIT);
         setLightboxYear(prevYear.year);
-        setLightboxIndex(prevYear.images.length - 1);
+        setLightboxIndex(prevDisplayed.length - 1);
       }
     }
   }, [data, lightboxIndex, lightboxYear]);
@@ -87,7 +53,8 @@ export default function Gallery() {
     if (lightboxIndex === null || lightboxYear === null) return;
     const yearData = data.find((d) => d.year === lightboxYear);
     if (!yearData) return;
-    if (lightboxIndex < yearData.images.length - 1) {
+    const displayedInYear = yearData.images.slice(0, HOMEPAGE_IMAGE_LIMIT);
+    if (lightboxIndex < displayedInYear.length - 1) {
       setLightboxIndex(lightboxIndex + 1);
     } else {
       const nextYearIdx = data.findIndex((d) => d.year === lightboxYear) - 1;
@@ -111,7 +78,11 @@ export default function Gallery() {
 
   const lightboxImg =
     lightboxYear !== null && lightboxIndex !== null
-      ? data.find((d) => d.year === lightboxYear)?.images[lightboxIndex]
+      ? (() => {
+          const yearData = data.find((d) => d.year === lightboxYear);
+          const displayed = yearData?.images.slice(0, HOMEPAGE_IMAGE_LIMIT) ?? [];
+          return displayed[lightboxIndex] ?? null;
+        })()
       : null;
 
   const formatDate = (iso: string) => {
@@ -135,8 +106,6 @@ export default function Gallery() {
       </section>
     );
   }
-
-  const hasAnyMedia = data.some((d) => d.images.length > 0);
 
   if (!hasAnyMedia) {
     return (
@@ -242,66 +211,13 @@ export default function Gallery() {
         </div>
       </div>
 
-      {lightboxImg && lightboxIndex !== null && lightboxYear !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 transition-opacity duration-200"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image lightbox"
-          onClick={(e) => e.target === e.currentTarget && closeLightbox()}
-        >
-          <button
-            type="button"
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-            aria-label="Close"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          <button
-            type="button"
-            onClick={goPrev}
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-            aria-label="Previous image"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          <div className="relative max-w-4xl max-h-[85vh] w-full flex flex-col items-center">
-            <div className="relative w-full flex-1 min-h-0 flex items-center justify-center">
-              <Image
-                src={lightboxImg.imageUrl}
-                alt=""
-                width={1200}
-                height={800}
-                className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-lg"
-                unoptimized={false}
-              />
-            </div>
-            <div className="mt-4 text-center text-white">
-              <p className="font-semibold">{lightboxImg.roundName}</p>
-              <p className="text-white/80 text-sm">{lightboxImg.championshipName}</p>
-              <p className="text-white/60 text-xs mt-1">{formatDate(lightboxImg.createdAt)}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={goNext}
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-            aria-label="Next image"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      )}
+      <MediaVaultLightbox
+        image={lightboxImg}
+        onClose={closeLightbox}
+        onPrev={goPrev}
+        onNext={goNext}
+        formatDate={formatDate}
+      />
     </section>
   );
 }
