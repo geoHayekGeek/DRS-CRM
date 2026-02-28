@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { Trophy, Medal, Flag, CircleDollarSign, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, Medal, Flag, Target, ChevronDown, ChevronUp } from "lucide-react";
 import { theme } from "@/lib/theme";
 import { getSessionDisplayName } from "@/lib/session-utils";
 import { formatPoints } from "@/lib/format-points";
@@ -166,7 +166,7 @@ export default function DriverDetailPage() {
     {
       label: "Total Points",
       value: formatPoints(career.totalPoints),
-      icon: CircleDollarSign,
+      icon: Target,
     },
     { label: "Wins", value: String(career.wins), icon: Trophy },
     { label: "Podiums", value: String(career.podiums), icon: Medal },
