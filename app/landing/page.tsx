@@ -3,6 +3,10 @@ import DriversSpotlight from '@/components/landing/DriversSpotlight';
 import Gallery from '@/components/landing/Gallery';
 import Hero from '@/components/landing/Hero';
 import NewDrivers from '@/components/landing/NewDrivers';
+import {
+  getRoundsFeedForLanding,
+  getFeaturedChampionshipForLanding,
+} from "@/lib/public-championship";
 import { headers } from 'next/headers';
 
 async function getSpotlightDrivers() {
@@ -34,48 +38,19 @@ async function getNewestDrivers() {
   }
 }
 
-async function getRoundsFeed() {
-  try {
-    const headersList = await headers();
-    const host = headersList.get("host") ?? "localhost:3000";
-    const protocol = headersList.get("x-forwarded-proto") ?? "http";
-    const base = `${protocol}://${host}`;
-    const res = await fetch(`${base}/api/public/rounds-feed`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return { rounds: [] };
-    const data = await res.json();
-    return { rounds: Array.isArray(data.rounds) ? data.rounds : [] };
-  } catch {
-    return { rounds: [] };
-  }
-}
-
-async function getFeaturedChampionship() {
-  const headersList = await headers();
-  const host = headersList.get('host') ?? 'localhost:3000';
-  const protocol = headersList.get('x-forwarded-proto') ?? 'http';
-  const base = `${protocol}://${host}`;
-  const res = await fetch(`${base}/api/public/championships/featured`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) return { championship: null, hasStandings: false };
-  return res.json();
-}
-
 export default async function LandingPage() {
   const [spotlightDrivers, featured, newestDrivers, roundsFeed] = await Promise.all([
     getSpotlightDrivers(),
-    getFeaturedChampionship(),
+    getFeaturedChampionshipForLanding(),
     getNewestDrivers(),
-    getRoundsFeed(),
+    getRoundsFeedForLanding(),
   ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <main className="flex-grow">
         <section id="hero">
-          <Hero rounds={roundsFeed.rounds} />
+          <Hero rounds={roundsFeed} />
         </section>
 
         <section id="newdrivers">

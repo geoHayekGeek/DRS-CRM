@@ -1,24 +1,5 @@
-import { headers } from "next/headers";
 import Link from "next/link";
-
-type ChampionshipListItem = {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string | null;
-};
-
-async function getChampionships(): Promise<ChampionshipListItem[]> {
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const protocol = headersList.get("x-forwarded-proto") ?? "http";
-  const base = `${protocol}://${host}`;
-  const res = await fetch(`${base}/api/public/championships`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
-  return res.json();
-}
+import { getChampionshipsList } from "@/lib/public-championship";
 
 function formatDateRange(start: string, end: string | null): string {
   const s = new Date(start);
@@ -38,7 +19,7 @@ function formatDateRange(start: string, end: string | null): string {
 }
 
 export default async function ChampionshipsPage() {
-  const championships = await getChampionships();
+  const championships = await getChampionshipsList();
 
   if (championships.length === 0) {
     return (

@@ -1,59 +1,7 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import RoundDetail from "./RoundDetail";
-
-type RoundData = {
-  round: {
-    id: string;
-    name: string;
-    date: string;
-    trackName: string;
-    location: string | null;
-  };
-  roundStandings: { fullName: string; totalPoints: number }[];
-  images: { url: string }[];
-};
-
-type SessionResult = {
-  position: number;
-  driverName: string;
-  time: string;
-  points: number;
-};
-
-type Session = {
-  id: string;
-  name: string;
-  order: number;
-  results: SessionResult[];
-};
-
-async function getRound(roundId: string): Promise<RoundData | null> {
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const protocol = headersList.get("x-forwarded-proto") ?? "http";
-  const base = `${protocol}://${host}`;
-  const res = await fetch(`${base}/api/public/rounds/${roundId}`, {
-    cache: "no-store",
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
-}
-
-async function getSessions(roundId: string): Promise<Session[]> {
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const protocol = headersList.get("x-forwarded-proto") ?? "http";
-  const base = `${protocol}://${host}`;
-  const res = await fetch(`${base}/api/public/rounds/${roundId}/sessions`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.sessions ?? [];
-}
+import { getRoundPublic, getRoundSessionsPublic } from "@/lib/public-championship";
 
 export default async function RoundPage({
   params,
@@ -61,8 +9,8 @@ export default async function RoundPage({
   params: { championshipId: string; roundId: string };
 }) {
   const [roundData, sessions] = await Promise.all([
-    getRound(params.roundId),
-    getSessions(params.roundId),
+    getRoundPublic(params.roundId),
+    getRoundSessionsPublic(params.roundId),
   ]);
   if (!roundData) notFound();
 

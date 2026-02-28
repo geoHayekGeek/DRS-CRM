@@ -1,42 +1,14 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ChampionshipDetail from "./ChampionshipDetail";
-
-type Round = {
-  id: string;
-  name: string;
-  date: string;
-  trackName: string;
-  location: string | null;
-  status: string;
-};
-
-type ChampionshipData = {
-  championship: { id: string; name: string; startDate: string; endDate: string | null };
-  rounds: Round[];
-  standings: { fullName: string; totalPoints: number }[];
-};
-
-async function getChampionship(id: string): Promise<ChampionshipData | null> {
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const protocol = headersList.get("x-forwarded-proto") ?? "http";
-  const base = `${protocol}://${host}`;
-  const res = await fetch(`${base}/api/public/championships/${id}`, {
-    cache: "no-store",
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
-}
+import { getChampionshipPublic } from "@/lib/public-championship";
 
 export default async function ChampionshipPage({
   params,
 }: {
   params: { championshipId: string };
 }) {
-  const data = await getChampionship(params.championshipId);
+  const data = await getChampionshipPublic(params.championshipId);
   if (!data) notFound();
 
   return (

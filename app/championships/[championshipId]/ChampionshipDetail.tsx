@@ -8,7 +8,7 @@ type Round = {
   id: string;
   name: string;
   date: string;
-  trackName: string;
+  trackName: string | null;
   location: string | null;
   status: string;
 };
