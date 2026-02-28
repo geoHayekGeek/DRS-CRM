@@ -16,7 +16,7 @@ const Navbar = () => {
           
           {/* Logo Section - Aligned Left */}
           <div className="flex-shrink-0 flex items-center">
-            <a href="/landing" className="flex items-center group">
+            <a href="/" className="flex items-center group">
               <Image 
                 src="/DRS-black.png" 
                 alt="DRS Logo" 
@@ -29,12 +29,12 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            <NavItem href="/landing">Home</NavItem>
+            <NavItem href="/">Home</NavItem>
             <NavItem href="/drivers">Drivers</NavItem>
             <NavItem href="/championships">Championship</NavItem>
-            <NavItem href="/landing/about">About</NavItem>
-            <NavItem href="/landing/gallery">Gallery</NavItem>
-            <NavItem href="/landing/contact">Contact</NavItem>
+            <NavItem href="/about">About</NavItem>
+            <NavItem href="/gallery">Gallery</NavItem>
+            <NavItem href="/contact">Contact</NavItem>
           </div>
 
           <div className="flex md:hidden">
@@ -66,12 +66,12 @@ const Navbar = () => {
         ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}
       >
         <div className="bg-white/90 backdrop-blur-xl border-b border-gray-200 shadow-2xl p-6 flex flex-col items-center space-y-6">
-          <MobileNavItem href="/landing" delay="0ms">Home</MobileNavItem>
+          <MobileNavItem href="/" delay="0ms">Home</MobileNavItem>
           <MobileNavItem href="/drivers" delay="100ms">Drivers</MobileNavItem>
           <MobileNavItem href="/championships" delay="200ms">Championship</MobileNavItem>
-          <MobileNavItem href="/landing/about" delay="300ms">About</MobileNavItem>
-          <MobileNavItem href="/landing/gallery" delay="350ms">Gallery</MobileNavItem>
-          <MobileNavItem href="/landing/contact" delay="400ms">Contact</MobileNavItem>
+          <MobileNavItem href="/about" delay="300ms">About</MobileNavItem>
+          <MobileNavItem href="/gallery" delay="350ms">Gallery</MobileNavItem>
+          <MobileNavItem href="/contact" delay="400ms">Contact</MobileNavItem>
         </div>
       </div>
     </nav>

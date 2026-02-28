@@ -11,6 +11,10 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      { source: "/landing", destination: "/", permanent: false },
+      { source: "/landing/about", destination: "/about", permanent: false },
+      { source: "/landing/gallery", destination: "/gallery", permanent: false },
+      { source: "/landing/contact", destination: "/contact", permanent: false },
       { source: "/landing/championship", destination: "/championships", permanent: false },
       { source: "/landing/championship/:path*", destination: "/championships", permanent: false },
       { source: "/landing/race", destination: "/championships", permanent: false },

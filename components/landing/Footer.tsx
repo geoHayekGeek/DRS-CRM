@@ -12,7 +12,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
           
           {/* Logo */}
-          <Link href="/landing" className="flex-shrink-0">
+          <Link href="/" className="flex-shrink-0">
             <Image 
               src="/DRS-black.png"       
               alt="Brand Logo" 
@@ -27,9 +27,9 @@ const Footer = () => {
           <nav className="flex flex-wrap justify-center gap-8">
             <FooterLink href="/drivers">Drivers</FooterLink>
             <FooterLink href="/championships">Championship</FooterLink>
-            <FooterLink href="/landing/about">About</FooterLink>
-            <FooterLink href="/landing/gallery">Gallery</FooterLink>
-            <FooterLink href="/landing/contact">Contact</FooterLink>
+            <FooterLink href="/about">About</FooterLink>
+            <FooterLink href="/gallery">Gallery</FooterLink>
+            <FooterLink href="/contact">Contact</FooterLink>
           </nav>
 
           {/* Social Icons */}
