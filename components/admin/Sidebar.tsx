@@ -54,36 +54,49 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen = false, onMob
       `}
       style={{ backgroundColor: theme.colors.primary.dark }}
     >
-      <div className={`flex items-center border-b border-gray-700 flex-shrink-0 justify-between p-4 lg:justify-between ${collapsed ? "lg:flex-col lg:justify-center lg:p-3" : ""}`}>
-        <div className={`flex items-center gap-2 flex-1 min-w-0 ${collapsed ? "lg:flex-col lg:mb-2 lg:flex-none" : ""}`}>
+      {/* Header: logo starts at left edge, close/collapse button at the end */}
+      <div
+        className={`flex items-center border-b border-gray-700 flex-shrink-0 min-h-[60px] transition-all duration-300 w-full
+          ${collapsed ? "lg:flex-col lg:justify-between lg:py-2 lg:pl-1 lg:pr-1 lg:min-h-[80px]" : "flex-row justify-between gap-2 pl-2 pr-2 py-3"}`}
+      >
+        {/* Logo: starts at beginning of sidebar, larger */}
+        <div
+          className={`relative flex items-center justify-start overflow-hidden transition-all duration-300 flex-shrink-0
+            h-10 w-full max-w-[180px] pl-0
+            ${collapsed ? "lg:h-[52px] lg:w-[52px] lg:max-w-[52px] lg:flex-shrink-0" : "lg:h-12 lg:max-w-[180px]"}`}
+        >
           <Image
-            src="/DRS.png"
-            alt="DRS Cup 2026"
-            width={140}
-            height={35}
-            className={`h-8 w-auto max-w-[140px] object-contain lg:transition-all lg:duration-300 ${collapsed ? "lg:w-8 lg:h-8 lg:max-w-8" : "lg:w-[140px] lg:h-[35px] lg:max-w-[140px]"}`}
+            src={collapsed ? "/drs-logo-small.png" : "/drs-logo.png"}
+            alt="DRS"
+            width={collapsed ? 52 : 180}
+            height={collapsed ? 52 : 48}
+            className="object-contain object-left"
+            style={{ width: "100%", height: "100%" }}
             priority
+            unoptimized={false}
           />
-          {/* Mobile: close button */}
+        </div>
+
+        {/* Buttons at the end of the sidebar */}
+        <div className="flex items-center flex-shrink-0 ml-auto lg:ml-0">
           <button
             type="button"
             onClick={onMobileClose}
-            className="p-2 text-gray-300 hover:text-white transition-all duration-200 rounded hover:bg-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center lg:hidden"
+            className="p-2.5 text-gray-300 hover:text-white transition-all duration-200 rounded-lg hover:bg-gray-700 min-h-[48px] min-w-[48px] flex items-center justify-center lg:hidden"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-7 h-7 shrink-0" />
+          </button>
+          <button
+            onClick={onToggle}
+            className="hidden lg:flex p-2.5 text-gray-300 hover:text-white transition-all duration-200 rounded-lg hover:bg-gray-700 items-center justify-center min-h-[48px] min-w-[48px] border border-gray-600 hover:border-gray-500"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <ChevronLeft
+              className={`w-7 h-7 shrink-0 transition-transform duration-300 ${collapsed ? "rotate-180" : "rotate-0"}`}
+            />
           </button>
         </div>
-        {/* Desktop: collapse toggle */}
-        <button
-          onClick={onToggle}
-          className="hidden lg:flex p-2 text-gray-300 hover:text-white transition-all duration-200 rounded hover:bg-gray-700 items-center justify-center"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          <ChevronLeft
-            className={`w-5 h-5 transition-transform duration-300 ${collapsed ? "rotate-180" : "rotate-0"}`}
-          />
-        </button>
       </div>
 
       <nav className="flex-1 py-4 sidebar-nav overflow-y-auto overflow-x-hidden">
