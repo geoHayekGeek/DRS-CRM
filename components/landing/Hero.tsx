@@ -22,23 +22,34 @@ const Hero = ({ rounds }: Props) => {
             </div>
 
             <h1 className="text-4xl font-black tracking-tighter text-gray-900 sm:text-6xl mb-6 italic">
-              WHERE THE <br className="hidden lg:block" />
+              WHERE <br className="hidden lg:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600">
-                GRID COMES ALIVE.
+               CHAMPIONS ARE BUILT.
               </span>
             </h1>
 
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              The ultimate hub for racing fanatics. Join <strong>50,000+</strong> fans discussing live timings, transfer rumors, and technical analysis. Don't just watch the race be part of the paddock.
+              The DRS Karting Cup returns bigger and stronger.
+              Execution.Precision.Consistency.Dedication.
+              Follow every round, every position gained, every point earned.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button className="px-8 py-4 text-base font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition transform hover:-translate-y-0.5 shadow-lg hover:shadow-red-200">
-                Join the Community
-              </button>
-              <button className="px-8 py-4 text-base font-bold text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition border border-transparent hover:border-gray-300">
-                View Latest News
-              </button>
+            <div className="flex flex-wrap gap-4">
+              <a 
+                href="https://wa.me/96171996908" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-8 py-4 text-base font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition transform hover:-translate-y-0.5 shadow-lg hover:shadow-red-200 text-center"
+              >
+                Join the community
+              </a>
+
+              <a 
+                href="/landing/DriversSpotlight" 
+                className="px-8 py-4 text-base font-bold text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition border border-transparent hover:border-gray-300 text-center"
+              >
+                See Live Standings
+              </a>
             </div>
 
             <div className="mt-10 flex items-center justify-center lg:justify-start gap-4">
@@ -50,8 +61,8 @@ const Hero = ({ rounds }: Props) => {
                 ))}
               </div>
               <div className="text-sm">
-                <p className="font-bold text-gray-900">120+ Fans Online</p>
-                <p className="text-gray-500">Debating sector times right now</p>
+                <p className="font-bold text-gray-900">120+ Drivers Joined</p>
+                <p className="text-gray-500">Join our community now.</p>
               </div>
             </div>
           </div>
