@@ -12,7 +12,7 @@ interface Round {
   date: string;
   createdAt: string;
   setupCompleted: boolean;
-  roundStatus: "UPCOMING" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  roundStatus: "UPCOMING ROUNDS" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
 }
 
 interface Championship {
@@ -186,7 +186,7 @@ export default function ChampionshipDetailPage() {
                             ? "bg-green-100 text-green-800"
                             : round.roundStatus === "IN_PROGRESS"
                               ? "bg-amber-50 text-amber-800"
-                              : round.roundStatus === "UPCOMING"
+                              : round.roundStatus === "UPCOMING ROUNDS"
                                 ? "bg-blue-50 text-blue-800"
                                 : "bg-gray-100 text-gray-800"
                         }`}
@@ -195,8 +195,8 @@ export default function ChampionshipDetailPage() {
                           ? "COMPLETED"
                           : round.roundStatus === "IN_PROGRESS"
                             ? "IN PROGRESS"
-                            : round.roundStatus === "UPCOMING"
-                              ? "UPCOMING"
+                            : round.roundStatus === "UPCOMING ROUNDS"
+                              ? "UPCOMING ROUNDS"
                               : "PENDING"}
                       </span>
                     </li>

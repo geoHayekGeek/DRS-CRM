@@ -36,7 +36,7 @@ const ThreeBackground = () => {
               > 
                 <FuturisticShape />
                 
-                <Sparkles 
+                {/* <Sparkles 
                   count={300}        
                   scale={6}          
                   size={8}          
@@ -44,7 +44,7 @@ const ThreeBackground = () => {
                   opacity={0.8} 
                   color="#ff2200"    
                   noise={0.5}
-                />
+                /> */}
               </group>
             </Center>
           </Suspense>
