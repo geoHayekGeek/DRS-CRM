@@ -44,8 +44,8 @@ const Championship = ({ championship, hasStandings, standings = [] }: Props) => 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col items-center text-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Featured Championship</h2>
-            <p className="mt-2 text-lg font-semibold text-gray-900">{displayName}</p>
+            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">{displayName}</h2>
+            {/* <p className="mt-2 text-lg font-semibold text-gray-900">{displayName}</p> */}
           </div>
           <Link
             href="/championships"

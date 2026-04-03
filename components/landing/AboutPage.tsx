@@ -36,7 +36,8 @@ export default function AboutPage() {
           We Are DRS
         </h1>
         <p className="max-w-2xl mx-auto text-xl text-gray-600 font-medium uppercase tracking-widest border-l-4 border-red-600 pl-6 text-left bg-white/50 backdrop-blur-sm py-2">
-          "Drag Reduction System enabled. We bring you closer to the apex of motorsport."
+          Lebanon’s biggest rental karting championship built on execution, fairness and competition.
+          DRS organizes multi-round seasons where performance is measured, standings re transparent, and every lap counts. DRS is more than just a brand.
         </p>
       </div>
 
@@ -111,17 +112,17 @@ export default function AboutPage() {
         <ValueCard 
           icon={<FaFlagCheckered />} 
           title="Pure Racing" 
-          desc="No filler. Just pure, unadulterated motorsport content tailored for the petrolhead." 
+          desc="A complete championship calendar. 8 Rounds. 1 Champion." 
         />
         <ValueCard 
           icon={<FaGlobeAmericas />} 
-          title="Global Access" 
-          desc="From Silverstone to Suzuka, we cover every corner of the calendar with local insight." 
+          title="Live Standings & Driver Stats" 
+          desc="Track driver standings in real time. View race results, points progressions and driver performance." 
         />
         <ValueCard 
           icon={<FaBolt />} 
-          title="Innovation" 
-          desc="Pushing the limits of web technology to bring you a 3D immersive experience." 
+          title="PROGRESSION" 
+          desc="Drivers evolve across the season. Positions are earned, defended, and sometimes lost." 
         />
       </div>
 
@@ -142,7 +143,7 @@ export default function AboutPage() {
           <h3 className="text-4xl md:text-5xl font-black uppercase italic mb-8 text-gray-900">
             Ready to hit the track?
           </h3>
-          <Link href="/contact">
+          <Link href="https://chat.whatsapp.com/CJJHb2eVzFn1ZB1oFvwHCA">
             <button className="relative px-12 py-5 bg-black text-white font-bold uppercase tracking-wider rounded-lg overflow-hidden group hover:scale-105 transition-transform duration-300 shadow-2xl hover:shadow-red-600/50">
               <span className="relative z-10">Join the Grid</span>
               <div className="absolute inset-0 bg-red-600 transform -skew-x-12 -translate-x-full group-hover:translate-x-0 transition-transform duration-300 origin-left"></div>
