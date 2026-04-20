@@ -1,21 +1,36 @@
-import React from 'react';
-import Navbar from '@/components/landing/Navbar';
-import Footer from '@/components/landing/Footer';
-import AllDrivers from '@/components/landing/AllDrivers';
+import { headers } from "next/headers";
+import AllDrivers from "@/components/landing/AllDrivers";
 
-export default function DriversPage() {
+type PublicDriver = {
+  id: string;
+  fullName: string;
+  profileImageUrl: string | null;
+  weight: number | null;
+  height: number | null;
+};
+
+async function getDrivers(): Promise<PublicDriver[]> {
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") ?? "http";
+  const base = `${protocol}://${host}`;
+  const res = await fetch(`${base}/api/public/drivers`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export default async function DriversPage() {
+  const drivers = await getDrivers();
+
   return (
-   <div className="min-h-screen flex flex-col bg-white">
-
-      
+    <div className="min-h-screen flex flex-col bg-white">
       <main className="flex-grow">
-        
         <section id="drivers">
-           <AllDrivers />
+          <AllDrivers drivers={drivers} />
         </section>
-
       </main>
-
     </div>
   );
 }
