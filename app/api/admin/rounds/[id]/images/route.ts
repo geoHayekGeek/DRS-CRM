@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
 import { getUploadsDir } from "@/lib/uploads";
+import { revalidatePath } from "next/cache";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -64,6 +65,8 @@ export async function POST(
     const roundImage = await db.roundImage.create({
       data: { roundId, imageUrl },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({
       id: roundImage.id,

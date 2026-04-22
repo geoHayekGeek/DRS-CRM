@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { unlink } from "fs/promises";
 import { db } from "@/lib/db";
 import { resolveUploadPath, uploadUrlToRelative } from "@/lib/uploads";
+import { revalidatePath } from "next/cache";
 
 export async function DELETE(
   request: NextRequest,
@@ -30,6 +31,8 @@ export async function DELETE(
     await db.roundImage.delete({
       where: { id: imageId },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true });
   } catch (error) {

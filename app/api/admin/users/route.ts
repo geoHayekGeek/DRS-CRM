@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { requireSuperAdmin } from "@/lib/role-guard";
+import { revalidatePath } from "next/cache";
 
 export async function GET(request: NextRequest) {
   const forbidden = requireSuperAdmin(request);
@@ -78,6 +79,8 @@ export async function POST(request: NextRequest) {
         createdAt: true,
       },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {

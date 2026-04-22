@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getRoundStatus } from "@/lib/round-status";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   try {
@@ -216,6 +217,8 @@ export async function POST(request: NextRequest) {
         },
       });
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(round, { status: 201 });
   } catch (error) {

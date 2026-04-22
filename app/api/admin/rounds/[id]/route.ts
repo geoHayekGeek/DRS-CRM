@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { cleanupDirectory } from "@/lib/fs-cleanup";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   request: NextRequest,
@@ -190,6 +191,8 @@ export async function PUT(
       },
     });
 
+    revalidatePath("/", "layout");
+
     return NextResponse.json(round);
   } catch (error) {
     console.error("Error updating round:", error);
@@ -221,6 +224,7 @@ export async function DELETE(
     });
 
     await cleanupDirectory(`uploads/rounds/${params.id}`);
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

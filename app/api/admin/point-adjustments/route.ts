@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,6 +74,8 @@ export async function POST(request: NextRequest) {
         delta,
       },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(adjustment, { status: 201 });
   } catch (error) {

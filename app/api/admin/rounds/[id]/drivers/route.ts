@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   _request: NextRequest,
@@ -116,6 +117,8 @@ export async function PUT(
         });
       }
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -152,6 +153,8 @@ export async function POST(
         data: { setupCompleted: true },
       });
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(
       { success: true, message: "Round set up successfully" },

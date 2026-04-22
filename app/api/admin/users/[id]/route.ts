@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/role-guard";
+import { revalidatePath } from "next/cache";
 
 export async function DELETE(
   request: NextRequest,
@@ -32,6 +33,8 @@ export async function DELETE(
     await db.adminUser.delete({
       where: { id: params.id },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

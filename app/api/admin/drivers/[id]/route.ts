@@ -113,6 +113,7 @@ export async function PUT(
     revalidatePath("/drivers/[id]", "page");
     revalidatePath(`/drivers/${params.id}`);
     revalidatePath("/landing/drivers");
+    revalidatePath("/", "layout");
 
     return NextResponse.json(driver);
   } catch (error) {
@@ -148,6 +149,7 @@ export async function DELETE(
     revalidatePath("/drivers/[id]", "page");
     revalidatePath(`/drivers/${params.id}`);
     revalidatePath("/landing/drivers");
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

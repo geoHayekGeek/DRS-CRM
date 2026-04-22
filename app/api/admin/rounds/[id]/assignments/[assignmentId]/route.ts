@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 function getGroupLabels(count: number): string[] {
   const labels: string[] = [];
@@ -130,6 +131,8 @@ export async function PATCH(
         },
       },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(updated);
   } catch (error) {

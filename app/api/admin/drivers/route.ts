@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     revalidatePath("/");
     revalidatePath("/drivers");
     revalidatePath("/landing/drivers");
+    revalidatePath("/", "layout");
 
     return NextResponse.json(driver, { status: 201 });
   } catch (error) {

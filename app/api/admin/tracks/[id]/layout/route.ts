@@ -3,6 +3,7 @@ import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
 import { getUploadsDir, resolveUploadPath, uploadUrlToRelative } from "@/lib/uploads";
+import { revalidatePath } from "next/cache";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -75,6 +76,8 @@ export async function POST(
       where: { id: trackId },
       data: { layoutImageUrl: url },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ url });
   } catch (error) {

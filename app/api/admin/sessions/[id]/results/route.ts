@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SessionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 import {
   calculateSessionPoints,
   SessionType,
@@ -209,6 +210,8 @@ export async function PUT(
         orderBy: { position: "asc" },
       });
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(savedResults, { status: 200 });
   } catch (error) {

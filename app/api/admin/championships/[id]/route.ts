@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getRoundStatus } from "@/lib/round-status";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   request: NextRequest,
@@ -141,6 +142,8 @@ export async function PUT(
       },
     });
 
+    revalidatePath("/", "layout");
+
     return NextResponse.json(championship);
   } catch (error) {
     console.error("Error updating championship:", error);
@@ -170,6 +173,8 @@ export async function DELETE(
     await db.championship.delete({
       where: { id: params.id },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

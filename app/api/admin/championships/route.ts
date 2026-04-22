@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   try {
@@ -71,6 +72,8 @@ export async function POST(request: NextRequest) {
         endDate: end,
       },
     });
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(championship, { status: 201 });
   } catch (error) {

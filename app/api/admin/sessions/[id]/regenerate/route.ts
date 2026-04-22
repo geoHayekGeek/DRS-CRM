@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getFinalQualifyingDrivers } from "@/lib/final-qualifying";
+import { revalidatePath } from "next/cache";
 
 /**
  * POST: Regenerate Final Qualifying drivers from qualifying results.
@@ -45,6 +46,7 @@ export async function POST(
           status: "PENDING",
         },
       });
+      revalidatePath("/", "layout");
       return NextResponse.json({
         success: true,
         status: "PENDING",
@@ -59,6 +61,8 @@ export async function POST(
         data: { status: "READY" },
       }),
     ]);
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({
       success: true,
