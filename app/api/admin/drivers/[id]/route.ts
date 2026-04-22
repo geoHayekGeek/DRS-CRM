@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   request: NextRequest,
@@ -107,6 +108,12 @@ export async function PUT(
       },
     });
 
+    revalidatePath("/");
+    revalidatePath("/drivers");
+    revalidatePath("/drivers/[id]", "page");
+    revalidatePath(`/drivers/${params.id}`);
+    revalidatePath("/landing/drivers");
+
     return NextResponse.json(driver);
   } catch (error) {
     return NextResponse.json(
@@ -135,6 +142,12 @@ export async function DELETE(
     await db.driver.delete({
       where: { id: params.id },
     });
+
+    revalidatePath("/");
+    revalidatePath("/drivers");
+    revalidatePath("/drivers/[id]", "page");
+    revalidatePath(`/drivers/${params.id}`);
+    revalidatePath("/landing/drivers");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

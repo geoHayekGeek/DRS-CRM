@@ -17,7 +17,9 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(drivers);
+    return NextResponse.json(drivers, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch newest drivers" },

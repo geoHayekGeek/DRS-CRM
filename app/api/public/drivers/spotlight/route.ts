@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const aggregated = await db.sessionResult.groupBy({
@@ -17,7 +19,9 @@ export async function GET() {
       .slice(0, 4);
 
     if (top4.length === 0) {
-      return NextResponse.json([]);
+      return NextResponse.json([], {
+        headers: { "Cache-Control": "no-store, max-age=0" },
+      });
     }
 
     const drivers = await db.driver.findMany({
@@ -46,7 +50,9 @@ export async function GET() {
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch spotlight drivers" },

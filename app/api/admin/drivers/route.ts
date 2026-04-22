@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   try {
@@ -55,6 +56,10 @@ export async function POST(request: NextRequest) {
         notes: notes?.trim() || null,
       },
     });
+
+    revalidatePath("/");
+    revalidatePath("/drivers");
+    revalidatePath("/landing/drivers");
 
     return NextResponse.json(driver, { status: 201 });
   } catch (error) {

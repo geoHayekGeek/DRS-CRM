@@ -7,6 +7,8 @@ const UUID_REGEX =
 const RACE_TYPES = ["RACE", "FINAL_RACE"];
 const QUALIFYING_TYPES = ["QUALIFYING", "FINAL_QUALIFYING"];
 
+export const dynamic = "force-dynamic";
+
 function isRaceType(type: string): boolean {
   return RACE_TYPES.includes(type);
 }
@@ -78,6 +80,8 @@ export async function GET(
           careerStats: { totalPoints: 0, wins: 0, podiums: 0, poles: 0 },
           championships: [],
         },
+      }, {
+        headers: { "Cache-Control": "no-store, max-age=0" },
       });
     }
 
@@ -381,6 +385,8 @@ export async function GET(
         },
         championships,
       },
+    }, {
+      headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch (error) {
     return NextResponse.json(
