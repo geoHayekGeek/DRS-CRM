@@ -13,15 +13,20 @@ import { headers } from "next/headers";
 const HOMEPAGE_DEPLOY_MARKER = "home-vault-fix-2026-04-24-01";
 
 async function getSpotlightDrivers() {
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const protocol = headersList.get("x-forwarded-proto") ?? "http";
-  const base = `${protocol}://${host}`;
-  const res = await fetch(`${base}/api/public/drivers/spotlight`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const headersList = await headers();
+    const host = headersList.get("host") ?? "localhost:3000";
+    const protocol = headersList.get("x-forwarded-proto") ?? "http";
+    const base = `${protocol}://${host}`;
+    const res = await fetch(`${base}/api/public/drivers/spotlight`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 }
 
 async function getNewestDrivers() {
