@@ -1,5 +1,6 @@
 import Championship from "@/components/landing/Championship";
 import DriversSpotlight from "@/components/landing/DriversSpotlight";
+import DeployMarkerLog from "@/components/landing/DeployMarkerLog";
 import Gallery from "@/components/landing/Gallery";
 import Hero from "@/components/landing/Hero";
 import NewDrivers from "@/components/landing/NewDrivers";
@@ -8,6 +9,8 @@ import {
   getFeaturedChampionshipForLanding,
 } from "@/lib/public-championship";
 import { headers } from "next/headers";
+
+const HOMEPAGE_DEPLOY_MARKER = "home-vault-fix-2026-04-24-01";
 
 async function getSpotlightDrivers() {
   const headersList = await headers();
@@ -39,6 +42,14 @@ async function getNewestDrivers() {
 }
 
 export default async function HomePage() {
+  const deployMeta = [
+    HOMEPAGE_DEPLOY_MARKER,
+    process.env.RAILWAY_GIT_COMMIT_SHA ?? "no-railway-sha",
+    process.env.RAILWAY_DEPLOYMENT_ID ?? "no-deployment-id",
+  ].join("|");
+
+  console.info(`[DEPLOY_MARKER][homepage][server] ${deployMeta}`);
+
   const [spotlightDrivers, featured, newestDrivers, roundsFeed] = await Promise.all([
     getSpotlightDrivers(),
     getFeaturedChampionshipForLanding(),
@@ -73,6 +84,7 @@ export default async function HomePage() {
           <Gallery />
         </section>
       </main>
+      <DeployMarkerLog marker={deployMeta} />
     </div>
   );
 }

@@ -1,0 +1,55 @@
+{
+    "year":  2026,
+    "championshipId":  "07624a9c-4854-4a25-afde-51ae689de6d0",
+    "championshipName":  "DRS CUP FINAL TEST",
+    "images":  [
+                   {
+                       "id":  "f852bcf3-e32c-4aef-9de8-e1153dddacd4",
+                       "imageUrl":  "/uploads/rounds/8dcb50be-aef4-486e-8ed3-3180b42c5944/6f3db164-d115-470c-865b-b56991878753.webp",
+                       "roundId":  "8dcb50be-aef4-486e-8ed3-3180b42c5944",
+                       "roundName":  "Round 1",
+                       "championshipName":  "DRS CUP FINAL TEST",
+                       "createdAt":  "2026-04-20T15:44:24.495Z"
+                   },
+                   {
+                       "id":  "0e2112f3-b1de-4563-a8c1-c5abe6bbd251",
+                       "imageUrl":  "/uploads/rounds/8dcb50be-aef4-486e-8ed3-3180b42c5944/99464f55-e308-41c9-a8a6-c3f120bcde54.webp",
+                       "roundId":  "8dcb50be-aef4-486e-8ed3-3180b42c5944",
+                       "roundName":  "Round 1",
+                       "championshipName":  "DRS CUP FINAL TEST",
+                       "createdAt":  "2026-04-20T15:44:23.874Z"
+                   },
+                   {
+                       "id":  "4652216a-0f08-44b3-87e4-8bb98a6d058d",
+                       "imageUrl":  "/uploads/rounds/8dcb50be-aef4-486e-8ed3-3180b42c5944/5ea905e2-84ac-4c78-b083-a5057d6fc2d9.webp",
+                       "roundId":  "8dcb50be-aef4-486e-8ed3-3180b42c5944",
+                       "roundName":  "Round 1",
+                       "championshipName":  "DRS CUP FINAL TEST",
+                       "createdAt":  "2026-04-20T15:44:23.530Z"
+                   },
+                   {
+                       "id":  "70f6a109-ce92-48a9-b2d2-49af0dce85b0",
+                       "imageUrl":  "/uploads/rounds/8dcb50be-aef4-486e-8ed3-3180b42c5944/88942e9f-648d-477d-8d08-215d120f14ed.webp",
+                       "roundId":  "8dcb50be-aef4-486e-8ed3-3180b42c5944",
+                       "roundName":  "Round 1",
+                       "championshipName":  "DRS CUP FINAL TEST",
+                       "createdAt":  "2026-04-20T15:44:23.330Z"
+                   },
+                   {
+                       "id":  "747e1f9d-7a1b-4562-b064-c50f4a9ba5f9",
+                       "imageUrl":  "/uploads/rounds/8dcb50be-aef4-486e-8ed3-3180b42c5944/3152493f-d7ed-40ac-a673-ade854944342.webp",
+                       "roundId":  "8dcb50be-aef4-486e-8ed3-3180b42c5944",
+                       "roundName":  "Round 1",
+                       "championshipName":  "DRS CUP FINAL TEST",
+                       "createdAt":  "2026-04-20T15:44:23.099Z"
+                   },
+                   {
+                       "id":  "0b84ccea-ac9b-45b3-ac93-16d6e971b94f",
+                       "imageUrl":  "/uploads/rounds/8dcb50be-aef4-486e-8ed3-3180b42c5944/d6de2c83-eb17-4ad3-a9b2-ace9a7ace44e.webp",
+                       "roundId":  "8dcb50be-aef4-486e-8ed3-3180b42c5944",
+                       "roundName":  "Round 1",
+                       "championshipName":  "DRS CUP FINAL TEST",
+                       "createdAt":  "2026-04-20T15:44:22.822Z"
+                   }
+               ]
+}
