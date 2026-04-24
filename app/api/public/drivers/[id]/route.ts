@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -8,6 +9,7 @@ const RACE_TYPES = ["RACE", "FINAL_RACE"];
 const QUALIFYING_TYPES = ["QUALIFYING", "FINAL_QUALIFYING"];
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function isRaceType(type: string): boolean {
   return RACE_TYPES.includes(type);
@@ -23,7 +25,7 @@ export async function GET(
   try {
     const id = params.id;
     if (!id || !UUID_REGEX.test(id)) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return noStoreJson({ error: "Not found" }, { status: 404 });
     }
 
     const driver = await db.driver.findUnique({
@@ -38,7 +40,7 @@ export async function GET(
     });
 
     if (!driver) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return noStoreJson({ error: "Not found" }, { status: 404 });
     }
 
     const results = await db.sessionResult.findMany({
@@ -68,7 +70,7 @@ export async function GET(
     });
 
     if (results.length === 0) {
-      return NextResponse.json({
+      return noStoreJson({
         driver: {
           fullName: driver.fullName,
           profileImageUrl: driver.profileImageUrl,
@@ -80,8 +82,6 @@ export async function GET(
           careerStats: { totalPoints: 0, wins: 0, podiums: 0, poles: 0 },
           championships: [],
         },
-      }, {
-        headers: { "Cache-Control": "no-store, max-age=0" },
       });
     }
 
@@ -368,7 +368,7 @@ export async function GET(
       a.championshipName.localeCompare(b.championshipName)
     );
 
-    return NextResponse.json({
+    return noStoreJson({
       driver: {
         fullName: driver.fullName,
         profileImageUrl: driver.profileImageUrl,
@@ -385,11 +385,9 @@ export async function GET(
         },
         championships,
       },
-    }, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch driver" },
       { status: 500 }
     );

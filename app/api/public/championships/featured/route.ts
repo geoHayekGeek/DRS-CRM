@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -15,7 +19,7 @@ export async function GET() {
     });
 
     if (championships.length === 0) {
-      return NextResponse.json({
+      return noStoreJson({
         championship: null,
         hasStandings: false,
       });
@@ -53,7 +57,7 @@ export async function GET() {
       null;
 
     if (!featured) {
-      return NextResponse.json({
+      return noStoreJson({
         championship: null,
         hasStandings: false,
       });
@@ -130,9 +134,9 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json(response);
+    return noStoreJson(response);
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch featured championship" },
       { status: 500 }
     );

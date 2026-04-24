@@ -3,6 +3,9 @@ import { readFile, stat } from "fs/promises";
 import path from "path";
 import { resolveUploadPath } from "@/lib/uploads";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -11,7 +14,7 @@ const MIME: Record<string, string> = {
 };
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
   try {
@@ -27,11 +30,27 @@ export async function GET(
     }
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME[ext] || "application/octet-stream";
+    const etag = `"${statResult.size}-${Math.floor(statResult.mtimeMs)}"`;
+    const ifNoneMatch = request.headers.get("if-none-match");
+
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          "Last-Modified": statResult.mtime.toUTCString(),
+          "Cache-Control": "public, no-cache, max-age=0, must-revalidate",
+        },
+      });
+    }
+
     const buffer = await readFile(filePath);
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
+        ETag: etag,
+        "Last-Modified": statResult.mtime.toUTCString(),
+        "Cache-Control": "public, no-cache, max-age=0, must-revalidate",
       },
     });
   } catch {

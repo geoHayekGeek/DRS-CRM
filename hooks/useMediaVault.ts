@@ -11,7 +11,13 @@ export function useMediaVault() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/public/media-vault")
+    fetch("/api/public/media-vault", {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+      },
+    })
       .then((res) => res.json())
       .then((list: MediaVaultYear[]) => {
         if (!cancelled && Array.isArray(list)) {

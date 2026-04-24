@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function getSessionDisplayName(
   type: string,
@@ -32,7 +36,7 @@ export async function GET(
   try {
     const roundId = params.id;
     if (!roundId || !UUID_REGEX.test(roundId)) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return noStoreJson({ error: "Not found" }, { status: 404 });
     }
 
     const sessions = await db.session.findMany({
@@ -72,9 +76,9 @@ export async function GET(
       })),
     }));
 
-    return NextResponse.json({ sessions: list });
+    return noStoreJson({ sessions: list });
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch sessions" },
       { status: 500 }
     );

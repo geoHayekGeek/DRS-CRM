@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -18,9 +22,9 @@ export async function GET() {
       startDate: c.startDate.toISOString(),
       endDate: c.endDate?.toISOString() ?? null,
     }));
-    return NextResponse.json(list);
+    return noStoreJson(list);
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch championships" },
       { status: 500 }
     );

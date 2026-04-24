@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(
   _request: NextRequest,
@@ -11,7 +15,7 @@ export async function GET(
   try {
     const id = params.id;
     if (!id || !UUID_REGEX.test(id)) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return noStoreJson({ error: "Not found" }, { status: 404 });
     }
 
     const championship = await db.championship.findUnique({
@@ -25,7 +29,7 @@ export async function GET(
     });
 
     if (!championship) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return noStoreJson({ error: "Not found" }, { status: 404 });
     }
 
     const rounds = await db.round.findMany({
@@ -90,7 +94,7 @@ export async function GET(
       status: r.date < now ? "Completed" : "Upcoming",
     }));
 
-    return NextResponse.json({
+    return noStoreJson({
       championship: {
         id: championship.id,
         name: championship.name,
@@ -101,7 +105,7 @@ export async function GET(
       standings,
     });
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch championship" },
       { status: 500 }
     );

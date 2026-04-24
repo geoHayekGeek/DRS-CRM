@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -17,11 +19,9 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(drivers, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    });
+    return noStoreJson(drivers);
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch newest drivers" },
       { status: 500 }
     );

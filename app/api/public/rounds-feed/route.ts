@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getRoundStatus, type RoundStatus } from "@/lib/round-status";
+import { noStoreJson } from "@/lib/http-cache";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const LEGACY_GROUP_FINAL = (s: { type: string; group: string | null }) =>
   (s.type === "FINAL_QUALIFYING" || s.type === "FINAL_RACE") && s.group !== null;
@@ -90,9 +94,9 @@ export async function GET() {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
 
-    return NextResponse.json({ rounds: sorted });
+    return noStoreJson({ rounds: sorted });
   } catch (error) {
     console.error("[rounds-feed]", error);
-    return NextResponse.json({ rounds: [] });
+    return noStoreJson({ rounds: [] });
   }
 }

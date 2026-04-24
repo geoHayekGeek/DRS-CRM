@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -19,9 +21,7 @@ export async function GET() {
       .slice(0, 4);
 
     if (top4.length === 0) {
-      return NextResponse.json([], {
-        headers: { "Cache-Control": "no-store, max-age=0" },
-      });
+      return noStoreJson([]);
     }
 
     const drivers = await db.driver.findMany({
@@ -50,11 +50,9 @@ export async function GET() {
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
 
-    return NextResponse.json(result, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    });
+    return noStoreJson(result);
   } catch (error) {
-    return NextResponse.json(
+    return noStoreJson(
       { error: "Failed to fetch spotlight drivers" },
       { status: 500 }
     );

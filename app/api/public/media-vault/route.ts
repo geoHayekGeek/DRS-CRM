@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { noStoreJson } from "@/lib/http-cache";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export type MediaVaultImage = {
   id: string;
@@ -84,9 +88,9 @@ export async function GET() {
         };
       });
 
-    return NextResponse.json(result);
+    return noStoreJson(result);
   } catch (error) {
     console.error("[media-vault]", error);
-    return NextResponse.json([], { status: 200 });
+    return noStoreJson([]);
   }
 }
