@@ -59,6 +59,11 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <div
+        data-deploy-marker={deployMeta}
+        style={{ display: "none" }}
+        aria-hidden="true"
+      />
       <main className="flex-grow">
         <section id="hero">
           <Hero rounds={roundsFeed} />
