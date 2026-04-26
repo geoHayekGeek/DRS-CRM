@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SessionStatus } from "@prisma/client";
+import { Prisma, SessionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import {
@@ -9,6 +9,109 @@ import {
 } from "@/lib/points";
 import { getFinalQualifyingDrivers } from "@/lib/final-qualifying";
 import { getFinalRaceDrivers } from "@/lib/final-race";
+
+function hasSameDriverSet(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const setB = new Set(b);
+  for (const id of a) {
+    if (!setB.has(id)) return false;
+  }
+  return true;
+}
+
+async function syncDependentFinalSessions(roundId: string): Promise<void> {
+  const finalQualifyingSession = await db.session.findFirst({
+    where: {
+      roundId,
+      type: "FINAL_QUALIFYING",
+      group: null,
+    },
+    select: {
+      id: true,
+      status: true,
+      results: {
+        select: {
+          driverId: true,
+        },
+      },
+    },
+  });
+
+  const finalRaceSession = await db.session.findFirst({
+    where: {
+      roundId,
+      type: "FINAL_RACE",
+      group: null,
+    },
+    select: {
+      id: true,
+      status: true,
+    },
+  });
+
+  if (!finalQualifyingSession) return;
+
+  const fqCheck = await getFinalQualifyingDrivers(roundId);
+  const currentParticipantIds = finalQualifyingSession.results.map((r) => r.driverId);
+  const expectedParticipantIds = fqCheck.ready
+    ? fqCheck.drivers.map((d) => d.id)
+    : [];
+
+  const participantsChanged =
+    !fqCheck.ready || !hasSameDriverSet(currentParticipantIds, expectedParticipantIds);
+
+  const nextFinalQualifyingStatus = !fqCheck.ready
+    ? SessionStatus.PENDING
+    : participantsChanged
+    ? SessionStatus.READY
+    : finalQualifyingSession.results.length > 0
+    ? SessionStatus.COMPLETED
+    : SessionStatus.READY;
+
+  const updates: Prisma.PrismaPromise<unknown>[] = [];
+
+  if (participantsChanged && finalQualifyingSession.results.length > 0) {
+    updates.push(
+      db.sessionResult.deleteMany({
+        where: {
+          sessionId: finalQualifyingSession.id,
+        },
+      })
+    );
+  }
+
+  if (finalQualifyingSession.status !== nextFinalQualifyingStatus) {
+    updates.push(
+      db.session.update({
+        where: { id: finalQualifyingSession.id },
+        data: { status: nextFinalQualifyingStatus },
+      })
+    );
+  }
+
+  if (participantsChanged && finalRaceSession) {
+    updates.push(
+      db.sessionResult.deleteMany({
+        where: {
+          sessionId: finalRaceSession.id,
+        },
+      })
+    );
+
+    if (finalRaceSession.status !== SessionStatus.PENDING) {
+      updates.push(
+        db.session.update({
+          where: { id: finalRaceSession.id },
+          data: { status: SessionStatus.PENDING },
+        })
+      );
+    }
+  }
+
+  if (updates.length > 0) {
+    await db.$transaction(updates);
+  }
+}
 
 export async function PUT(
   request: NextRequest,
@@ -42,7 +145,7 @@ export async function PUT(
         return NextResponse.json(
           {
             error:
-              "Final Qualifying is waiting for qualifying results to determine drivers.",
+              "Final Qualifying is waiting for group-session results to determine drivers.",
           },
           { status: 400 }
         );
@@ -210,6 +313,10 @@ export async function PUT(
         orderBy: { position: "asc" },
       });
     });
+
+    if (session.type === "QUALIFYING" || session.type === "RACE") {
+      await syncDependentFinalSessions(session.roundId);
+    }
 
     revalidatePath("/", "layout");
 

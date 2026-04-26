@@ -4,7 +4,7 @@ import { getFinalQualifyingDrivers } from "@/lib/final-qualifying";
 import { revalidatePath } from "next/cache";
 
 /**
- * POST: Regenerate Final Qualifying drivers from qualifying results.
+ * POST: Regenerate Final Qualifying drivers from group-session standings.
  * Clears existing results, recalculates top 3 per group.
  * Only for FINAL_QUALIFYING sessions with group=null.
  */
@@ -40,27 +40,76 @@ export async function POST(
     const fqCheck = await getFinalQualifyingDrivers(session.roundId);
 
     if (!fqCheck.ready) {
-      await db.session.update({
-        where: { id: sessionId },
-        data: {
-          status: "PENDING",
+      const finalRaceSession = await db.session.findFirst({
+        where: {
+          roundId: session.roundId,
+          type: "FINAL_RACE",
+          group: null,
         },
+        select: { id: true },
       });
+
+      const operations = [
+        db.sessionResult.deleteMany({ where: { sessionId } }),
+        db.session.update({
+          where: { id: sessionId },
+          data: {
+            status: "PENDING",
+          },
+        }),
+      ];
+
+      if (finalRaceSession) {
+        operations.push(
+          db.sessionResult.deleteMany({ where: { sessionId: finalRaceSession.id } })
+        );
+        operations.push(
+          db.session.update({
+            where: { id: finalRaceSession.id },
+            data: { status: "PENDING" },
+          })
+        );
+      }
+
+      await db.$transaction(operations);
       revalidatePath("/", "layout");
       return NextResponse.json({
         success: true,
         status: "PENDING",
-        message: "Qualifying incomplete. Status set to PENDING.",
+        message: "Group-session results are incomplete. Status set to PENDING.",
       });
     }
 
-    await db.$transaction([
+    const finalRaceSession = await db.session.findFirst({
+      where: {
+        roundId: session.roundId,
+        type: "FINAL_RACE",
+        group: null,
+      },
+      select: { id: true },
+    });
+
+    const operations = [
       db.sessionResult.deleteMany({ where: { sessionId } }),
       db.session.update({
         where: { id: sessionId },
         data: { status: "READY" },
       }),
-    ]);
+    ];
+
+    if (finalRaceSession) {
+      operations.push(
+        db.sessionResult.deleteMany({ where: { sessionId: finalRaceSession.id } })
+      );
+      operations.push(
+        db.session.update({
+          where: { id: finalRaceSession.id },
+          data: { status: "PENDING" },
+        })
+      );
+    }
+
+    await db.$transaction(operations);
 
     revalidatePath("/", "layout");
 

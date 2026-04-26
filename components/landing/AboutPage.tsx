@@ -84,7 +84,7 @@ export default function AboutPage() {
             {/* Image Side (Karting Photo) */}
             <div className="relative h-96 md:h-auto min-h-[400px]">
               <Image 
-                src="/img3.png" // The Karting Image
+                src="/1_about.webp" // The Karting Image
                 alt="Kart Racing Action"
                 fill
                 className="object-cover md:rounded-r-2xl"
@@ -143,7 +143,7 @@ export default function AboutPage() {
           <h3 className="text-4xl md:text-5xl font-black uppercase italic mb-8 text-gray-900">
             Ready to hit the track?
           </h3>
-          <Link href="https://chat.whatsapp.com/CJJHb2eVzFn1ZB1oFvwHCA">
+          <Link href="https://chat.whatsapp.com/CJJHb2eVzFn1ZB1oFvwHCA?mode=gi_t">
             <button className="relative px-12 py-5 bg-black text-white font-bold uppercase tracking-wider rounded-lg overflow-hidden group hover:scale-105 transition-transform duration-300 shadow-2xl hover:shadow-red-600/50">
               <span className="relative z-10">Join the Grid</span>
               <div className="absolute inset-0 bg-red-600 transform -skew-x-12 -translate-x-full group-hover:translate-x-0 transition-transform duration-300 origin-left"></div>

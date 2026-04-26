@@ -258,7 +258,7 @@ export default function SessionResultsPage() {
     sessionData.session.group === null;
   const isPending = sessionData.session.status === "PENDING";
   const pendingMessage = isFinalQualifying
-    ? "Final Qualifying is waiting for qualifying results to determine drivers."
+    ? "Final Qualifying is waiting for group-session results to determine drivers."
     : isFinalRace
     ? "Final Race is waiting for final qualifying to determine grid."
     : "Waiting for prerequisites.";
