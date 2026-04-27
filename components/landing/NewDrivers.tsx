@@ -6,7 +6,7 @@ export type NewestDriver = {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
-  weight: number | null;
+  age: number | null;
   height: number | null;
 };
 
@@ -68,9 +68,9 @@ const NewDrivers = ({ drivers }: Props) => {
                     </h3>
 
                     <div className="mt-4 pt-4 border-t border-gray-100 space-y-1">
-                      {driver.weight != null && (
+                      {driver.age != null && (
                         <p className="text-sm text-gray-600">
-                          Weight: {driver.weight} kg
+                          Age: {driver.age}
                         </p>
                       )}
                       {driver.height != null && (

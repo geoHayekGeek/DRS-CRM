@@ -33,7 +33,7 @@ export async function GET(
       select: {
         fullName: true,
         profileImageUrl: true,
-        weight: true,
+        age: true,
         height: true,
         notes: true,
       },
@@ -74,7 +74,7 @@ export async function GET(
         driver: {
           fullName: driver.fullName,
           profileImageUrl: driver.profileImageUrl,
-          weight: driver.weight,
+          age: driver.age,
           height: driver.height,
           notes: driver.notes,
         },
@@ -372,7 +372,7 @@ export async function GET(
       driver: {
         fullName: driver.fullName,
         profileImageUrl: driver.profileImageUrl,
-        weight: driver.weight,
+        age: driver.age,
         height: driver.height,
         notes: driver.notes,
       },

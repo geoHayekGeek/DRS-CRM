@@ -20,9 +20,13 @@ export type RoundsFeedItem = {
   championship_name: string;
   date: string;
   track_name: string;
-  computed_status: RoundStatus;
+  computed_status: "UPCOMING" | "COMPLETED";
   updated_at: string;
 };
+
+function toPublicRoundStatus(status: RoundStatus): "UPCOMING" | "COMPLETED" {
+  return status === "COMPLETED" ? "COMPLETED" : "UPCOMING";
+}
 
 export async function GET() {
   try {
@@ -69,7 +73,7 @@ export async function GET() {
         championship_name: r.championship?.name ?? "—",
         date: r.date.toISOString(),
         track_name: r.track?.name ?? "—",
-        computed_status: status,
+        computed_status: toPublicRoundStatus(status),
         updated_at: r.updatedAt.toISOString(),
       };
     });
@@ -82,8 +86,8 @@ export async function GET() {
     });
 
     const sorted = [...filtered].sort((a, b) => {
-      const statusOrder = (s: RoundStatus) =>
-        s === "IN_PROGRESS" ? 0 : s === "UPCOMING" ? 1 : 2;
+      const statusOrder = (s: RoundsFeedItem["computed_status"]) =>
+        s === "UPCOMING" ? 0 : 1;
       const orderA = statusOrder(a.computed_status);
       const orderB = statusOrder(b.computed_status);
       if (orderA !== orderB) return orderA - orderB;
@@ -91,7 +95,7 @@ export async function GET() {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       if (a.computed_status === "COMPLETED")
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
+      return 0;
     });
 
     return noStoreJson({ rounds: sorted });

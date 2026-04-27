@@ -8,7 +8,7 @@ type PublicDriver = {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
-  weight: number | null;
+  age: number | null;
   height: number | null;
 };
 
@@ -83,8 +83,8 @@ const AllDrivers = ({ drivers }: Props) => {
 
                   <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
                     <div className="space-y-1">
-                      {driver.weight != null && (
-                        <p className="text-sm text-gray-600">Weight: {driver.weight} kg</p>
+                      {driver.age != null && (
+                        <p className="text-sm text-gray-600">Age: {driver.age}</p>
                       )}
                       {driver.height != null && (
                         <p className="text-sm text-gray-600">Height: {driver.height} cm</p>

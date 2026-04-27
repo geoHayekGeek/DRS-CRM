@@ -71,7 +71,10 @@ export default async function HomePage() {
       />
       <main className="flex-grow">
         <section id="hero">
-          <Hero rounds={roundsFeed} />
+          <Hero
+            rounds={roundsFeed}
+            activeChampionshipId={featured.activeChampionshipId}
+          />
         </section>
 
         <section id="newdrivers">

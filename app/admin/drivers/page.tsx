@@ -9,7 +9,7 @@ import { theme } from "@/lib/theme";
 interface Driver {
   id: string;
   fullName: string;
-  weight: number | null;
+  age: number | null;
   height: number | null;
   createdAt: string;
 }
@@ -190,7 +190,7 @@ export default function DriversPage() {
                     Full Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Weight
+                    Age
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Height
@@ -220,7 +220,7 @@ export default function DriversPage() {
                         {driver.fullName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {driver.weight ? `${driver.weight} kg` : "-"}
+                        {driver.age ?? "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {driver.height ? `${driver.height} cm` : "-"}

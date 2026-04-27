@@ -28,7 +28,7 @@ model Driver {
   id               String           @id @default(uuid())
   fullName         String           @map("full_name")
   profileImageUrl  String?          @map("profile_image_url")
-  weight           Float?
+  age              Int?
   height           Float?
   notes            String?
   createdAt        DateTime         @default(now()) @map("created_at")

@@ -4,9 +4,14 @@ import type { RoundsFeedRound } from './RoundsCard';
 
 type Props = {
   rounds: RoundsFeedRound[];
+  activeChampionshipId: string | null;
 };
 
-const Hero = ({ rounds }: Props) => {
+const Hero = ({ rounds, activeChampionshipId }: Props) => {
+  const liveStandingsHref = activeChampionshipId
+    ? `/championships/${activeChampionshipId}?tab=standings`
+    : "/championships";
+
   return (
     <section className="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden ">
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-red-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
@@ -16,10 +21,10 @@ const Hero = ({ rounds }: Props) => {
           
           <div className="max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
             
-            <div className="inline-flex items-center px-3 py-1 mb-6 text-xs font-bold tracking-widest text-red-600 uppercase bg-red-50 rounded-full border border-red-100">
+            {/* <div className="inline-flex items-center px-3 py-1 mb-6 text-xs font-bold tracking-widest text-red-600 uppercase bg-red-50 rounded-full border border-red-100">
               <span className="w-2 h-2 mr-2 bg-red-600 rounded-full animate-pulse"></span>
               Live: Monza GP Weekend
-            </div>
+            </div> */}
 
             <h1 className="text-4xl font-black tracking-tighter text-gray-900 sm:text-6xl mb-6 italic">
               WHERE <br className="hidden lg:block" />
@@ -36,7 +41,7 @@ const Hero = ({ rounds }: Props) => {
 
             <div className="flex flex-wrap gap-4">
               <a 
-                href="https://wa.me/96171996908" 
+                href="https://chat.whatsapp.com/CJJHb2eVzFn1ZB1oFvwHCA?mode=gi_t" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="px-8 py-4 text-base font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition transform hover:-translate-y-0.5 shadow-lg hover:shadow-red-200 text-center"
@@ -45,7 +50,7 @@ const Hero = ({ rounds }: Props) => {
               </a>
 
               <a 
-                href="/landing/DriversSpotlight" 
+                href={liveStandingsHref}
                 className="px-8 py-4 text-base font-bold text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 transition border border-transparent hover:border-gray-300 text-center"
               >
                 See Live Standings

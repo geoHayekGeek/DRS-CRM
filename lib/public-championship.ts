@@ -234,9 +234,13 @@ export type RoundsFeedItem = {
   championship_name: string;
   date: string;
   track_name: string;
-  computed_status: RoundStatus;
+  computed_status: "UPCOMING" | "COMPLETED";
   updated_at: string;
 };
+
+function toPublicRoundStatus(status: RoundStatus): "UPCOMING" | "COMPLETED" {
+  return status === "COMPLETED" ? "COMPLETED" : "UPCOMING";
+}
 
 export async function getRoundsFeedForLanding(): Promise<RoundsFeedItem[]> {
   try {
@@ -283,7 +287,7 @@ export async function getRoundsFeedForLanding(): Promise<RoundsFeedItem[]> {
         championship_name: r.championship?.name ?? "—",
         date: r.date.toISOString(),
         track_name: r.track?.name ?? "—",
-        computed_status: status,
+        computed_status: toPublicRoundStatus(status),
         updated_at: r.updatedAt.toISOString(),
       };
     });
@@ -296,8 +300,8 @@ export async function getRoundsFeedForLanding(): Promise<RoundsFeedItem[]> {
     });
 
     const sorted = [...filtered].sort((a, b) => {
-      const statusOrder = (s: RoundStatus) =>
-        s === "IN_PROGRESS" ? 0 : s === "UPCOMING" ? 1 : 2;
+      const statusOrder = (s: RoundsFeedItem["computed_status"]) =>
+        s === "UPCOMING" ? 0 : 1;
       const orderA = statusOrder(a.computed_status);
       const orderB = statusOrder(b.computed_status);
       if (orderA !== orderB) return orderA - orderB;
@@ -305,7 +309,7 @@ export async function getRoundsFeedForLanding(): Promise<RoundsFeedItem[]> {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       if (a.computed_status === "COMPLETED")
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
+      return 0;
     });
 
     return sorted;
@@ -317,6 +321,7 @@ export async function getRoundsFeedForLanding(): Promise<RoundsFeedItem[]> {
 
 export type FeaturedChampionshipResult = {
   championship: { id: string; name: string; startDate: string; endDate: string | null } | null;
+  activeChampionshipId: string | null;
   hasStandings: boolean;
   standings?: { fullName: string; totalPoints: number; roundsPlayed: number }[];
 };
@@ -334,8 +339,10 @@ export async function getFeaturedChampionshipForLanding(): Promise<FeaturedChamp
       },
     });
 
+    const activeChampionship = championships.find((c) => c.isCurrent) ?? null;
+
     if (championships.length === 0) {
-      return { championship: null, hasStandings: false };
+      return { championship: null, activeChampionshipId: null, hasStandings: false };
     }
 
     const resultsWithChampionship = await db.sessionResult.findMany({
@@ -370,7 +377,11 @@ export async function getFeaturedChampionshipForLanding(): Promise<FeaturedChamp
       null;
 
     if (!featured) {
-      return { championship: null, hasStandings: false };
+      return {
+        championship: null,
+        activeChampionshipId: activeChampionship?.id ?? null,
+        hasStandings: false,
+      };
     }
 
     const hasStandings = championshipIdsWithStandings.has(featured.id);
@@ -381,6 +392,7 @@ export async function getFeaturedChampionshipForLanding(): Promise<FeaturedChamp
         startDate: featured.startDate.toISOString(),
         endDate: featured.endDate?.toISOString() ?? null,
       },
+      activeChampionshipId: activeChampionship?.id ?? featured.id,
       hasStandings,
     };
 
@@ -436,7 +448,7 @@ export async function getFeaturedChampionshipForLanding(): Promise<FeaturedChamp
     return result;
   } catch (error) {
     console.error("[getFeaturedChampionshipForLanding]", error);
-    return { championship: null, hasStandings: false };
+    return { championship: null, activeChampionshipId: null, hasStandings: false };
   }
 }
 

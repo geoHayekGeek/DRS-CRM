@@ -17,14 +17,16 @@ type Props = {
   championshipId: string;
   rounds: Round[];
   standings: { fullName: string; totalPoints: number; roundsPlayed?: number }[];
+  initialTab?: "rounds" | "standings";
 };
 
 export default function ChampionshipDetail({
   championshipId,
   rounds,
   standings,
+  initialTab = "rounds",
 }: Props) {
-  const [tab, setTab] = useState<"rounds" | "standings">("rounds");
+  const [tab, setTab] = useState<"rounds" | "standings">(initialTab);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(undefined, {

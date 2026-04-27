@@ -13,7 +13,7 @@ export async function GET() {
       select: {
         id: true,
         fullName: true,
-        weight: true,
+        age: true,
         height: true,
         profileImageUrl: true,
       },

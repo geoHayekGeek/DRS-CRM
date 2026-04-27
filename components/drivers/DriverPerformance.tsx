@@ -52,7 +52,7 @@ export type CareerStats = {
 export type DriverPublic = {
   fullName: string;
   profileImageUrl: string | null;
-  weight: number | null;
+  age: number | null;
   height: number | null;
   notes: string | null;
 };
@@ -289,8 +289,8 @@ export function DriverPerformance({ driver, performance }: DriverPerformanceProp
           }}
         >
           <p className="text-gray-700">
-            <span className="font-medium text-gray-500">Weight:</span>{" "}
-            {driver.weight != null ? `${driver.weight} kg` : "—"}
+            <span className="font-medium text-gray-500">Age:</span>{" "}
+            {driver.age != null ? driver.age : "—"}
           </p>
           <p className="text-gray-700">
             <span className="font-medium text-gray-500">Height:</span>{" "}
@@ -373,3 +373,4 @@ export function DriverPerformance({ driver, performance }: DriverPerformanceProp
     </>
   );
 }
+

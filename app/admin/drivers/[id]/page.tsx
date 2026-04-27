@@ -52,7 +52,7 @@ interface PerformanceDriver {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
-  weight: number | null;
+  age: number | null;
   height: number | null;
   notes: string | null;
   createdAt: string;
@@ -218,10 +218,10 @@ export default function DriverDetailPage() {
               </h2>
               <h3 className="text-base font-medium text-gray-800 mb-1">{driver.fullName}</h3>
               <dl className="space-y-1">
-                {driver.weight != null && (
+                {driver.age != null && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Weight</dt>
-                    <dd className="text-sm text-gray-900">{driver.weight} kg</dd>
+                    <dt className="text-sm font-medium text-gray-500">Age</dt>
+                    <dd className="text-sm text-gray-900">{driver.age}</dd>
                   </div>
                 )}
                 {driver.height != null && (

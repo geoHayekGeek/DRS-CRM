@@ -10,7 +10,7 @@ export type RoundsFeedRound = {
   championship_name: string;
   date: string;
   track_name: string;
-  computed_status: "UPCOMING" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  computed_status: "UPCOMING" | "COMPLETED";
   updated_at: string;
 };
 
@@ -27,11 +27,7 @@ function formatRoundDate(isoString: string): string {
 
 function StatusDot({ status }: { status: RoundsFeedRound["computed_status"] }) {
   const dotClass =
-    status === "IN_PROGRESS"
-      ? "bg-green-500"
-      : status === "UPCOMING"
-        ? "bg-blue-500"
-        : "bg-gray-400";
+    status === "UPCOMING" ? "bg-blue-500" : "bg-gray-400";
   return (
     <span
       className={`inline-block w-2 h-2 rounded-full shrink-0 ${dotClass}`}

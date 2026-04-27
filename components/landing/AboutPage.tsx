@@ -65,17 +65,17 @@ export default function AboutPage() {
               {/* Stats Row */}
               <div className="flex gap-6 pt-4">
                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center"><FaBolt /></div>
+                    <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center"><FaUsers /></div>
                     <div>
-                      <div className="text-2xl font-black italic">0.02s</div>
-                      <div className="text-[10px] uppercase font-bold text-gray-500">Latency</div>
+                      <div className="text-2xl font-black italic">90+</div>
+                      <div className="text-[10px] uppercase font-bold text-gray-500">Drivers</div>
                     </div>
                  </div>
                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center"><FaUsers /></div>
+                    <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center"><FaFlagCheckered /></div>
                     <div>
-                      <div className="text-2xl font-black italic">1M+</div>
-                      <div className="text-[10px] uppercase font-bold text-gray-500">Fans</div>
+                      <div className="text-2xl font-black italic">1000+</div>
+                      <div className="text-[10px] uppercase font-bold text-gray-500">Points Awarded</div>
                     </div>
                  </div>
               </div>
@@ -93,7 +93,7 @@ export default function AboutPage() {
               <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black/60 to-transparent flex items-end justify-end p-8">
                 <div className="text-white text-right">
                    <div className="text-sm font-bold uppercase tracking-widest opacity-80">Born on the Track</div>
-                   <div className="text-3xl font-black italic">Est. 2026</div>
+                   <div className="text-3xl font-black italic">Est. 2023</div>
                 </div>
               </div>
             </div>

@@ -5,7 +5,7 @@ type PublicDriver = {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
-  weight: number | null;
+  age: number | null;
   height: number | null;
 };
 

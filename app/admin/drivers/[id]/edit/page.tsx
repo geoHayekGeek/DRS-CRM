@@ -12,7 +12,7 @@ interface Driver {
   id: string;
   fullName: string;
   profileImageUrl: string | null;
-  weight: number | null;
+  age: number | null;
   height: number | null;
   notes: string | null;
 }
@@ -32,7 +32,7 @@ export default function EditDriverPage() {
   const [removeImage, setRemoveImage] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
-    weight: "",
+    age: "",
     height: "",
     notes: "",
   });
@@ -51,7 +51,7 @@ export default function EditDriverPage() {
       const driver: Driver = await response.json();
       setFormData({
         fullName: driver.fullName,
-        weight: driver.weight?.toString() || "",
+        age: driver.age?.toString() || "",
         height: driver.height?.toString() || "",
         notes: driver.notes || "",
       });
@@ -121,16 +121,16 @@ export default function EditDriverPage() {
         profileImageUrl,
       };
 
-      if (formData.weight.trim()) {
-        const weight = parseFloat(formData.weight);
-        if (isNaN(weight) || weight < 0) {
-          setError("Weight must be a valid positive number");
+      if (formData.age.trim()) {
+        const age = Number.parseInt(formData.age, 10);
+        if (!Number.isInteger(age) || age <= 0) {
+          setError("Age must be a valid positive whole number");
           setSaving(false);
           return;
         }
-        payload.weight = weight;
+        payload.age = age;
       } else {
-        payload.weight = null;
+        payload.age = null;
       }
 
       if (formData.height.trim()) {
@@ -288,16 +288,16 @@ export default function EditDriverPage() {
             </div>
 
             <div>
-              <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
-                Weight (kg)
+              <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
+                Age
               </label>
               <input
-                id="weight"
+                id="age"
                 type="number"
-                step="0.1"
-                min="0"
-                value={formData.weight}
-                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                step="1"
+                min="1"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                 className="block w-full min-h-[44px] px-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                 style={{
                   "--tw-ring-color": theme.colors.primary.red,

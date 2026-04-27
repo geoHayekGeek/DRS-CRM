@@ -30,7 +30,7 @@ export async function GET() {
         id: true,
         fullName: true,
         profileImageUrl: true,
-        weight: true,
+        age: true,
         height: true,
       },
     });
@@ -44,7 +44,7 @@ export async function GET() {
           id: driver.id,
           fullName: driver.fullName,
           profileImageUrl: driver.profileImageUrl,
-          weight: driver.weight,
+          age: driver.age,
           height: driver.height,
         };
       })

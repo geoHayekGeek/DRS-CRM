@@ -20,7 +20,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { fullName, profileImageUrl, weight, height, notes } = body;
+    const { fullName, profileImageUrl, age, height, notes } = body;
 
     if (!fullName || typeof fullName !== "string" || fullName.trim().length === 0) {
       return NextResponse.json(
@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (weight !== undefined && weight !== null) {
-      if (typeof weight !== "number" || weight < 0) {
+    if (age !== undefined && age !== null) {
+      if (typeof age !== "number" || !Number.isInteger(age) || age <= 0) {
         return NextResponse.json(
-          { error: "Weight must be a positive number" },
+          { error: "Age must be a positive whole number" },
           { status: 400 }
         );
       }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       data: {
         fullName: fullName.trim(),
         profileImageUrl: profileImageUrl?.trim() || null,
-        weight: weight || null,
+        age: age || null,
         height: height || null,
         notes: notes?.trim() || null,
       },

@@ -13,7 +13,7 @@ export async function GET() {
         id: true,
         fullName: true,
         profileImageUrl: true,
-        weight: true,
+        age: true,
         height: true,
       },
     });

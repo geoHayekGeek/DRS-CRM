@@ -5,11 +5,14 @@ import { getChampionshipPublic } from "@/lib/public-championship";
 
 export default async function ChampionshipPage({
   params,
+  searchParams,
 }: {
   params: { championshipId: string };
+  searchParams?: { tab?: string };
 }) {
   const data = await getChampionshipPublic(params.championshipId);
   if (!data) notFound();
+  const initialTab = searchParams?.tab === "standings" ? "standings" : "rounds";
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -27,6 +30,7 @@ export default async function ChampionshipPage({
         championshipId={data.championship.id}
         rounds={data.rounds}
         standings={data.standings}
+        initialTab={initialTab}
       />
     </div>
   );
