@@ -298,7 +298,6 @@ export function DriverPerformance({ driver, performance }: DriverPerformanceProp
           </p>
           {driver.notes != null && driver.notes.trim() !== "" && (
             <div>
-              <p className="font-medium text-gray-500 mb-1">Notes</p>
               <p className="text-gray-700 whitespace-pre-wrap">{driver.notes}</p>
             </div>
           )}
