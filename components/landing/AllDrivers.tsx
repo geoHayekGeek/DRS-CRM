@@ -50,7 +50,7 @@ const AllDrivers = ({ drivers }: Props) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredDrivers.map((driver) => (
             <Link
               key={driver.id}
@@ -58,7 +58,7 @@ const AllDrivers = ({ drivers }: Props) => {
               className="group block h-full"
             >
               <div className="relative h-full flex flex-col bg-gray-50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-gray-200 border-b-4 border-red-500">
-                <div className="h-48 w-full bg-red-600 relative overflow-hidden flex items-end justify-center">
+                <div className="h-40 sm:h-48 w-full bg-red-600 relative overflow-hidden flex items-end justify-center">
                   {driver.profileImageUrl ? (
                     <div className="relative w-full h-full">
                       <Image
@@ -74,9 +74,9 @@ const AllDrivers = ({ drivers }: Props) => {
                   )}
                 </div>
 
-                <div className="p-6 flex flex-col flex-grow bg-white">
+                <div className="p-4 sm:p-6 flex flex-col flex-grow bg-white">
                   <div className="mb-4">
-                    <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-red-600 transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-red-600 transition-colors">
                       {driver.fullName}
                     </h3>
                   </div>
@@ -84,14 +84,14 @@ const AllDrivers = ({ drivers }: Props) => {
                   <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
                     <div className="space-y-1">
                       {driver.age != null && (
-                        <p className="text-sm text-gray-600">Age: {driver.age}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">Age: {driver.age}</p>
                       )}
                       {driver.height != null && (
-                        <p className="text-sm text-gray-600">Height: {driver.height} cm</p>
+                        <p className="text-xs sm:text-sm text-gray-600">Height: {driver.height} cm</p>
                       )}
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                       </svg>
                     </div>

@@ -37,7 +37,7 @@ export default async function DriversGridPage() {
           Driver Grid
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {drivers.map((driver) => (
             <Link
               key={driver.id}
@@ -45,7 +45,7 @@ export default async function DriversGridPage() {
               className="group block h-full"
             >
               <div className="relative h-full flex flex-col bg-gray-50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-200 border-b-4 border-red-500">
-                <div className="h-48 w-full bg-red-600 relative overflow-hidden flex items-end justify-center">
+                <div className="h-40 sm:h-48 w-full bg-red-600 relative overflow-hidden flex items-end justify-center">
                   {driver.profileImageUrl ? (
                     <div className="relative w-full h-full">
                       <Image
@@ -61,30 +61,30 @@ export default async function DriversGridPage() {
                   )}
                 </div>
 
-                <div className="p-6 flex flex-col flex-grow bg-white">
-                  <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
+                <div className="p-4 sm:p-6 flex flex-col flex-grow bg-white">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-gray-700 transition-colors">
                     {driver.fullName}
                   </h3>
 
                   <div className="mt-4 pt-4 border-t border-gray-100 space-y-1">
                     {driver.age != null && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         Age: {driver.age}
                       </p>
                     )}
                     {driver.height != null && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         Height: {driver.height} cm
                       </p>
                     )}
                   </div>
 
                   <div className="mt-auto pt-4 flex justify-end">
-                    <span className="text-sm font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
+                    <span className="text-xs sm:text-sm font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
                       View profile
                     </span>
                     <svg
-                      className="w-4 h-4 ml-1 inline text-gray-400 group-hover:text-gray-900"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 inline text-gray-400 group-hover:text-gray-900"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
